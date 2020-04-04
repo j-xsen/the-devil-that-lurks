@@ -7,6 +7,7 @@ class Level:
         self.sprites = loader.loadModel(sprite_dest)
         self.buttons = []
         self.images = []
+        self.text_nodepaths = []
 
     def create(self):
         # create actors
@@ -29,6 +30,8 @@ class Level:
             self.destroy_button(b)
         for i in self.images:
             self.destroy_image(i)
+        for t in self.text_nodepaths:
+            self.destroy_text_nodepaths(t)
 
         return
 
@@ -43,6 +46,9 @@ class Level:
 
     def destroy_image(self, i):
         i.destroy()
+
+    def destroy_text_nodepaths(self, t):
+        t.removeNode()
 
     def update(self):
         return

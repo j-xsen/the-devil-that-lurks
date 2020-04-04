@@ -1,5 +1,7 @@
 from level.level import Level
 from direct.actor.Actor import Actor
+from panda3d.core import *
+from player.chat import Chat
 
 # Level that all come together during day
 class LivingRoomLevel(Level):
@@ -22,14 +24,17 @@ class LivingRoomLevel(Level):
                 pawn_red.setPos(-0, 30, -1.5)
                 pawn_red.setH(-180)
             else:
-                if p.number > 4:
-                    local_number = p.number - 1
+                if p.number > self.father.get_local_player().get_number():
+                    pawn_red.setPos(self.positions[p.get_number() - 1][0])
+                    pawn_red.setH(self.positions[p.get_number() - 1][1])
                 else:
-                    local_number = p.number
-                pawn_red.setPos(self.positions[local_number][0])
-                pawn_red.setH(self.positions[local_number][1])
+                    pawn_red.setPos(self.positions[p.get_number()][0])
+                    pawn_red.setH(self.positions[p.get_number()][1])
             pawn_red.setScale(0.75, 0.75, 0.75)
             pawn_red.loop('breath')
             pawn_red.reparentTo(render)
-            self.actors.append(pawn_red)
+            p.set_pos(pawn_red.getPos())
 
+            self.text_nodepaths.append(Chat(p.get_pos(), "Hello"))
+            self.actors.append(pawn_red)
+        #print(render.ls())
