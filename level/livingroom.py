@@ -1,7 +1,7 @@
 from level.level import Level
 from direct.actor.Actor import Actor
 from panda3d.core import *
-from player.chat import Chat
+from game.chat import Chat
 
 # Level that all come together during day
 class LivingRoomLevel(Level):

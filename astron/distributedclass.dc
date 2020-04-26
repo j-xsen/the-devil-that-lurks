@@ -1,0 +1,24 @@
+// Some abstractions for readability.
+typedef uint32 doId;
+typedef uint32 zoneId;
+typedef uint64 channel;
+
+// The Python Views for these distributed classes.
+from game.game import DistributedLoginManager/AI/UD
+from game.game import DistributedMaproot/AI/UD
+from game.game import DistributedPlayer/AI/OV
+
+// A simple DOG for username/password authentication and handoff to
+// the DistributedMaproot for avatar creation.
+dclass DistributedLoginManager {
+  login(string username) clsend;
+  set_maproot(doId games_root);
+};
+
+dclass DistributedMaproot {
+    create_character_ov(channel client) airecv;
+};
+
+dclass DistributedPlayer {
+
+};

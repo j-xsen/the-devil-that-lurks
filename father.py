@@ -1,7 +1,7 @@
 from level.mainmenu import MainMenuLevel
 from level.loading import LoadingLevel
 from level.livingroom  import LivingRoomLevel
-from player.player import Player
+from game.player import Player
 
 # The Father object holds all UIs and Levels
 class Father:
@@ -40,7 +40,7 @@ class Father:
         self.active_level.create()
 
     def create_players(self):
-        # local player
+        # local game
         self.players.append(Player(3, "Jaxsen", False, True))
         for i in range(0, 9):
             if i != 3:
