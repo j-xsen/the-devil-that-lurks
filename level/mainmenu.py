@@ -103,7 +103,8 @@ class MainMenuLevel(Level):
         self.images.append(settings_image)
 
     def goto_singleplayer(self):
-        self.father.set_active_level("Game")
+        # self.father.set_active_level("Game")
+        self.father.get_avatarOV().request_game()
 
     def goto_play(self):
         self.soft_destroy()

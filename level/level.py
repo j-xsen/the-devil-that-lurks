@@ -8,6 +8,7 @@ class Level:
         self.buttons = []
         self.images = []
         self.text_nodepaths = []
+        self.text = []
 
     def create(self):
         # create actors
@@ -32,6 +33,8 @@ class Level:
             self.destroy_image(i)
         for t in self.text_nodepaths:
             self.destroy_text_nodepaths(t)
+        for t in self.text:
+            self.destroy_text(t)
 
         return
 
@@ -49,6 +52,9 @@ class Level:
 
     def destroy_text_nodepaths(self, t):
         t.removeNode()
+
+    def destroy_text(self, t):
+        t.destroy()
 
     def update(self):
         return

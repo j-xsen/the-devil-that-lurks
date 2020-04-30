@@ -7,6 +7,7 @@ typedef uint64 channel;
 from src.distributed import DistributedLoginManager/AI/UD
 from src.distributed import DistributedMaproot/AI/UD
 from src.distributed import DistributedAvatar/AI/OV
+from src.distributed import DistributedGame/AI
 
 // A simple DOG for username/password authentication and handoff to
 // the DistributedMaproot for avatar creation.
@@ -20,5 +21,10 @@ dclass DistributedMaproot {
 };
 
 dclass DistributedAvatar {
+    request_game() airecv ownsend;
+    receive_game() ownrecv;
+};
+
+dclass DistributedGame {
 
 };

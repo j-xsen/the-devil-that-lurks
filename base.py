@@ -18,15 +18,22 @@ class MyApp(ShowBase):
         render.setAntialias(AntialiasAttrib.MAuto)
         self.disableMouse()
 
-        self.accept("escape", self.disconnect)
-
-        self.notify = DirectNotify().newCategory("local-player")
+        self.notify = DirectNotify().newCategory("lp")
         self.avatarOV = None
 
         # Create Repo
         self.repo = AstronClientRepository(dcFileNames = ["astron/distributedclass.dc"],
                                            connectMethod = AstronClientRepository.CM_NET)
         # callback events
+        # # controls
+        self.accept("escape", self.disconnect)
+
+        # # server
+        self.accept("avatar", self.get_avatar)
+        self.accept("distributed_avatar", self.get_distributed_avatar)
+        self.accept("receive_game", self.receive_game)
+
+        # # magic
         self.accept("CLIENT_HELLO_RESP", self.client_is_handshaked)
         self.accept("CLIENT_EJECT", self.ejected)
         self.accept("LOST_CONNECTION", self.lost_connection)
@@ -71,9 +78,14 @@ class MyApp(ShowBase):
     def get_avatar(self, avatar):
         self.notify.info("Received our Player!")
         self.avatarOV = avatar
+        self.father.set_avatarOV(avatar)
 
     def get_distributed_avatar(self, avatar):
         self.notify.info("Received DistributedAvatar [()]".format(avatar.doId))
+
+    def receive_game(self):
+        self.notify.info("Received game!")
+        self.father.set_game()
 
 app = MyApp()
 
