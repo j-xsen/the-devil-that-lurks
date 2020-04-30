@@ -5,11 +5,11 @@ from direct.distributed.AstronClientRepository import AstronClientRepository
 
 from direct.directnotify.DirectNotify import DirectNotify
 
-from father import Father
+from src.father import Father
 
 version_string = "TDTL-v0"
 
-loadPrcFileData("", "\n".join(["notify-level-local-player info"]))
+loadPrcFileData("", "\n".join(["notify-level-lp debug"]))
 
 class MyApp(ShowBase):
     def __init__(self):
@@ -21,7 +21,7 @@ class MyApp(ShowBase):
         self.accept("escape", self.disconnect)
 
         self.notify = DirectNotify().newCategory("local-player")
-        self.player = None
+        self.avatarOV = None
 
         # Create Repo
         self.repo = AstronClientRepository(dcFileNames = ["astron/distributedclass.dc"],
@@ -68,10 +68,12 @@ class MyApp(ShowBase):
         # TODO: input name
         login_manager.login("jaxsen")
 
-    def heres_your_player(self, player):
-        print("DOES THSI WORK")
+    def get_avatar(self, avatar):
         self.notify.info("Received our Player!")
-        self.player = player
+        self.avatarOV = avatar
+
+    def get_distributed_avatar(self, avatar):
+        self.notify.info("Received DistributedAvatar [()]".format(avatar.doId))
 
 app = MyApp()
 
