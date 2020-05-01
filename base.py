@@ -27,6 +27,7 @@ class MyApp(ShowBase):
         # callback events
         # # controls
         self.accept("escape", self.disconnect)
+        self.accept("p", self.ping_games)
 
         # # server
         self.accept("avatar", self.get_avatar)
@@ -84,8 +85,16 @@ class MyApp(ShowBase):
         self.notify.info("Received DistributedAvatar [()]".format(avatar.doId))
 
     def receive_game(self):
-        self.notify.info("Received game!")
         self.father.set_game()
+
+    def ping_games(self):
+        self.notify.info("Pinging games....")
+
+        if self.avatarOV:
+            self.avatarOV.request_game()
+            pass
+        else:
+            self.notify.info("No avatar")
 
 app = MyApp()
 

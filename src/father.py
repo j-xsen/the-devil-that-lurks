@@ -23,8 +23,8 @@ class Father:
         self.levels.append(self.level_game)
         self.levels.append(self.level_lobby)
 
-        #self.active_level = self.level_mainmenu
-        self.active_level = self.level_lobby
+        self.active_level = self.level_mainmenu
+        # self.active_level = self.level_lobby
         self.active_level.create()
 
         self.avatarOV = None

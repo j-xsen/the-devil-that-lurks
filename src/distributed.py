@@ -84,11 +84,13 @@ class DistributedLoginManagerUD(DistributedObjectGlobalUD):
 # # Unassigned players zone 0
 
 class DistributedMaproot(DistributedObject):
-    pass
+    def generate(self):
+        notify_p.info("[DistributedMaproot] generate() in {}".format(self.doId))
 
 class DistributedMaprootAI(DistributedObjectAI):
     def generate(self):
         notify_ai.info("[DistributedMaprootAI] generate() in {}".format(self.doId))
+        self.games_available = []
 
     def set_maproot(self):
         notify_ai.info("[DistributedMaprootAI] set_maproot in {}".format(self.doId))
@@ -107,6 +109,41 @@ class DistributedMaprootAI(DistributedObjectAI):
         self.air.setOwner(avatar.getDoId(), clientId)
         # self.air.clientAddSessionObject(clientId, avatar.getDoId())
 
+    def any_games(self, client):
+        notify_ai.info("[DistributedMaprootAI] any_games() for {} in {}".format(client, self.doId))
+        if len(self.games_available) == 0:
+            notify_ai.info("[DistributedMaprootAI] No games found. Make one.")
+            self.create_game(client)
+        else:
+            for g in self.games_available:
+                self.send_client_game(client, g)
+                break
+
+    def create_game(self, client):
+        notify_ai.info("[DistributedMaprootAI] create_game() for {} in {}".format(client, self.doId))
+        # create the game
+        game = DistributedGameAI(self.air)
+        game.generateWithRequiredAndId(self.air.allocateChannel(), self.doId,
+                                       0)  # random doId, parentId, zoneId
+        game.setAI(self.air.ourChannel)
+
+        # Give client interest
+        self.air.clientAddInterest(client, 0, game.getDoId(), 1)  # client, interest, parent, zone
+
+        # Append it
+        self.games_available.append(game.doId)
+
+        self.send_client_game(client, game.doId)
+
+    def send_client_game(self, client, game):
+        client_do = self.air.doId2do[client]
+        client_do.receive_game(game)
+
+    def game_started(self, game):
+        if game in self.games_available:
+            self.games_available.remove(game)
+
+
 class DistributedMaprootUD(DistributedObjectUD):
     def generate(self):
         notify_ud.info("[DistributedMaprootUD] generate() in {}".format(self.doId))
@@ -116,10 +153,14 @@ class DistributedMaprootUD(DistributedObjectUD):
         self.sendUpdate("createAvatar", [clientId])
 
 # # # Distributed Avatar
-class DistributedAvatar(DistributedNode):
+class DistributedAvatar(DistributedObject):
     def generateInit(self):
         notify_p.info("[DistributedAvatar] generateInit() in {}".format(self.doId))
         base.messenger.send("distributed_avatar", [self])
+
+    def receive_game(self, game):
+        notify_p.info("[DistributedAvatar] receive_game({}) in {}".format(game, self.doId))
+        base.messenger.send("receive_game")
 
 class DistributedAvatarOV(DistributedObjectOV):
     def generateInit(self):
@@ -132,35 +173,35 @@ class DistributedAvatarOV(DistributedObjectOV):
         notify_p.info("[DistributedAvatarOV] request_game() in {}".format(self.doId))
         self.sendUpdate("request_game")
 
-    def receive_game(self):
-        notify_p.info("[DistributedAvatarOV] receive_game() in {}".format(self.doId))
+    def receiveGame(self, game):
+        notify_p.info("[DistributedAvatarOV] receive_game({}) in {}".format(game, self.doId))
         base.messenger.send("receive_game")
 
-class DistributedAvatarAI(DistributedNodeAI):
+class DistributedAvatarAI(DistributedObjectAI):
     def generate(self, repository = None):
         notify_ai.info("[DistributedAvatarAI] generate() in {}".format(self.doId))
+        self.game = None
 
     def request_game(self):
         notify_ai.info("[DistributedAvatarAI] request_game() in {}".format(self.doId))
 
-        # create the game
-        game = DistributedGameAI(self.air)
-        game.generateWithRequiredAndId(self.air.allocateChannel(), self.getLocation()[0], 0)  # random doId, parentId, zoneId
-        game.setAI(self.air.ourChannel)
+        # check if open game
+        maproot = self.air.doId2do[self.getLocation()[0]]
+        maproot.any_games(self.doId)
 
-        self.air.clientAddInterest(self.doId, 0, game.getDoId(), 1)  # client, interest, parent, zone
-
-        self.game = game
-        self.sendUpdate("receive_game")
-
+    def receive_game(self, game):
+        notify_ai.info("[DistributedAvatarAI] receive_game({}) in {}".format(game, self.doId))
+        self.sendUpdate("receiveGame", [game])
 
 # # # DistributedGame
 
-class DistributedGame(DistributedNode):
+class DistributedGame(DistributedObject):
     def generateInit(self):
         notify_p.info("[DistributedGame] generateInit() in {}".format(self.doId))
 
-class DistributedGameAI(DistributedNodeAI):
+class DistributedGameAI(DistributedObjectAI):
     def generate(self, repository = None):
         notify_ai.info("[DistributedGameAI] generate() in {}".format(self.doId))
-        notify_ai.info("[DistributedGameAI] location : {}".format(self.getLocation()))
+        # notify_ai.info("[DistributedGameAI] location : {}".format(self.getLocation()))
+
+        self.available = True

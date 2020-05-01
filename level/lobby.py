@@ -7,5 +7,7 @@ class LobbyLevel(Level):
         Level.__init__(self, "Lobby", "img/egg/mainmenu.egg", father)
 
     def create(self):
-        textObject = OnscreenText(text="Lobby", pos=(0,0.5), scale=0.35, fg=(1,1,1, 1))
-        self.text.append(textObject)
+        players_txt = OnscreenText(text="Players", pos=(0,0.5), scale=0.35, fg=(1,1,1, 1))
+        current_txt = OnscreenText(text="0/9", pos=(0,0), scale=0.2, fg=(1,1,1,1))
+        self.text.append(current_txt)
+        self.text.append(players_txt)

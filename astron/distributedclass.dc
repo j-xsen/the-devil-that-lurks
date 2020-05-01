@@ -2,6 +2,7 @@
 typedef uint32 doId;
 typedef uint32 zoneId;
 typedef uint64 channel;
+typedef uint8 bool;
 
 // The Python Views for these distributed classes.
 from src.distributed import DistributedLoginManager/AI/UD
@@ -18,13 +19,14 @@ dclass DistributedLoginManager {
 
 dclass DistributedMaproot {
     createAvatar(channel client) airecv;
+    any_games(doId client) airecv;
 };
 
 dclass DistributedAvatar {
     request_game() airecv ownsend;
-    receive_game() ownrecv;
+    receiveGame(doId game) ownrecv;
 };
 
 dclass DistributedGame {
-
+    bool available;
 };
