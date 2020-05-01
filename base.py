@@ -33,6 +33,7 @@ class MyApp(ShowBase):
         self.accept("avatar", self.get_avatar)
         self.accept("distributed_avatar", self.get_distributed_avatar)
         self.accept("receive_game", self.receive_game)
+        self.accept("player_count", self.player_count)
 
         # # magic
         self.accept("CLIENT_HELLO_RESP", self.client_is_handshaked)
@@ -95,6 +96,10 @@ class MyApp(ShowBase):
             pass
         else:
             self.notify.info("No avatar")
+
+    def player_count(self, count):
+        if self.father:
+            self.father.player_count(count)
 
 app = MyApp()
 

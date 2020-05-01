@@ -11,3 +11,6 @@ class LobbyLevel(Level):
         current_txt = OnscreenText(text="0/9", pos=(0,0), scale=0.2, fg=(1,1,1,1))
         self.text.append(current_txt)
         self.text.append(players_txt)
+
+    def player_count(self, count):
+        self.text[0].text = "{}/9".format(count)

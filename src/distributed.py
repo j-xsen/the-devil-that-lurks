@@ -136,8 +136,13 @@ class DistributedMaprootAI(DistributedObjectAI):
         self.send_client_game(client, game.doId)
 
     def send_client_game(self, client, game):
+        # send it to client
         client_do = self.air.doId2do[client]
-        client_do.receive_game(game)
+        client_do.sendUpdate("receive_game", [game])
+
+        # add client
+        game_do = self.air.doId2do[game]
+        game_do.add_player(client)
 
     def game_started(self, game):
         if game in self.games_available:
@@ -173,9 +178,13 @@ class DistributedAvatarOV(DistributedObjectOV):
         notify_p.info("[DistributedAvatarOV] request_game() in {}".format(self.doId))
         self.sendUpdate("request_game")
 
-    def receiveGame(self, game):
+    def receive_game(self, game):
         notify_p.info("[DistributedAvatarOV] receive_game({}) in {}".format(game, self.doId))
         base.messenger.send("receive_game")
+
+    def player_count(self, count):
+        notify_p.info("[DistributedAvatarOV] playerCount({}) in {}".format(count, self.doId))
+        base.messenger.send("player_count", [count])
 
 class DistributedAvatarAI(DistributedObjectAI):
     def generate(self, repository = None):
@@ -189,10 +198,6 @@ class DistributedAvatarAI(DistributedObjectAI):
         maproot = self.air.doId2do[self.getLocation()[0]]
         maproot.any_games(self.doId)
 
-    def receive_game(self, game):
-        notify_ai.info("[DistributedAvatarAI] receive_game({}) in {}".format(game, self.doId))
-        self.sendUpdate("receiveGame", [game])
-
 # # # DistributedGame
 
 class DistributedGame(DistributedObject):
@@ -203,5 +208,12 @@ class DistributedGameAI(DistributedObjectAI):
     def generate(self, repository = None):
         notify_ai.info("[DistributedGameAI] generate() in {}".format(self.doId))
         # notify_ai.info("[DistributedGameAI] location : {}".format(self.getLocation()))
+        self.players = []
 
-        self.available = True
+    def add_player(self, client):
+        notify_ai.info("[DistributedGameAI] add_player({}) in {}".format(client, self.doId))
+        self.players.append(client)
+
+        for p in self.players:
+            client_do = self.air.doId2do[p]
+            client_do.sendUpdate("player_count", [len(self.players)])

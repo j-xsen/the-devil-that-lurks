@@ -67,3 +67,7 @@ class Father:
             if p.local_player:
                 return p
         return False
+
+    def player_count(self, count):
+        if self.active_level == self.level_lobby:
+            self.level_lobby.player_count(count)
