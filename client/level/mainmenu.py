@@ -6,13 +6,16 @@ from panda3d.core import DirectionalLight, PerspectiveLens, Point3, Transparency
 from direct.gui.DirectGui import OnscreenImage, DirectButton, DGG
 from direct.interval.IntervalGlobal import LerpPosHprInterval
 
+from communicator import dg_request_game
+
+
 class MainMenuLevel(Level):
     def __init__(self, father):
         Level.__init__(self, "Main Menu", "img/egg/mainmenu.egg", father)
 
         # red pawn
         pawn_red = Actor("models/egg/pawn",
-                              {"breath": "models/egg/pawn-breath"})
+                         {"breath": "models/egg/pawn-breath"})
         pawn_red.setPos(-4, 20, -2)
         pawn_red.setH(-145)
         pawn_red.loop('breath')
@@ -104,8 +107,7 @@ class MainMenuLevel(Level):
         self.images.append(settings_image)
 
     def goto_singleplayer(self):
-        # self.father.set_active_level("Game")
-        self.father.get_avatarOV().request_game()
+        self.father.write(dg_request_game())
 
     def goto_play(self):
         self.soft_destroy()

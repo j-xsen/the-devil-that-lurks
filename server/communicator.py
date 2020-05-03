@@ -3,7 +3,7 @@ from direct.distributed.PyDatagram import PyDatagram
 from codes import *
 
 
-def dg_request_game():
+def dg_deliver_game():
     dg = PyDatagram()
-    dg.addUint8(REQUEST_GAME)
+    dg.addUint8(DELIVER_GAME)
     return dg

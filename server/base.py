@@ -9,10 +9,14 @@ from panda3d.core import QueuedConnectionListener
 from panda3d.core import QueuedConnectionReader
 from panda3d.core import ConnectionWriter
 from panda3d.core import PointerToConnection, NetAddress, NetDatagram
+from direct.distributed.PyDatagramIterator import PyDatagramIterator
+
+from communicator import *
+from game import Game
 
 # no window
-# loadPrcFileData("", "window-type none")
 loadPrcFileData("", "\n".join(["notify-level-server debug",
+                               "notify-level-game debug",
                                "window-type none"]))
 
 
@@ -31,6 +35,9 @@ class Server(ShowBase):
 
         # array of connections
         self.active_connections = []
+
+        # list of games
+        self.games = []
 
         # connect
         port_address = 9099
@@ -57,11 +64,51 @@ class Server(ShowBase):
 
     def tsk_reader_polling(self, taskdata):
         if self.cReader.dataAvailable():
-            datagram = NetDatagram()
-            if self.cReader.getData(datagram):
-                # TODO: Proccess data
-                pass
+            dg = NetDatagram()
+            if self.cReader.getData(dg):
+                iterator = PyDatagramIterator(dg)
+                if iterator.getUint8() == REQUEST_GAME:
+                    self.request_game(dg.getConnection())
+                else:
+                    self.notify.warning("Unknown datagram {}".format(PyDatagramIterator(dg)))
         return Task.cont
+
+    def request_game(self, connection):
+        if len(self.games) > 0:
+            # there is a game, lets see if its open
+            game = None
+
+            for g in self.games:
+                if g.open:
+                    game = g
+                    break
+
+            # make sure it found one
+            if game:
+                # add client
+                game.add_player(connection)
+                # send game to client
+                self.cWriter.send(dg_deliver_game(), connection)
+            else:
+                self.notify.info("No available games, make one")
+                self.create_game(connection)
+        else:
+            self.notify.info("No available games, make one")
+            self.create_game(connection)
+
+    def create_game(self, connection):
+        self.notify.info("Creating game...")
+        # create game
+        game = Game()
+
+        # add player
+        game.add_player(connection)
+
+        # add game to games array
+        self.games.append(game)
+
+        # send to client
+        self.cWriter.send(dg_deliver_game(), connection)
 
 
 app = Server()
