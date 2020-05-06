@@ -1,7 +1,9 @@
 from direct.showbase.ShowBase import ShowBase
+from direct.showbase.RandomNumGen import RandomNumGen
 from direct.directnotify.DirectNotifyGlobal import directNotify
 from direct.task.TaskManagerGlobal import taskMgr, Task
 from panda3d.core import loadPrcFileData
+import time
 
 # network
 from panda3d.core import QueuedConnectionManager
@@ -12,7 +14,7 @@ from panda3d.core import PointerToConnection, NetAddress, NetDatagram
 from direct.distributed.PyDatagramIterator import PyDatagramIterator
 
 from communicator import *
-from game import Game
+from objects.game import Game
 
 # no window
 loadPrcFileData("", "\n".join(["notify-level-server debug",
@@ -34,7 +36,7 @@ class Server(ShowBase):
         ShowBase.__init__(self)
 
         # array of connections
-        self.active_connections = []
+        self.active_connections = {}
 
         # list of games
         self.games = []
@@ -58,8 +60,14 @@ class Server(ShowBase):
             if self.cListener.getNewConnection(rendezvous, net_address, new_connection):
                 self.notify.info("New connection")
                 new_connection = new_connection.p()
-                self.active_connections.append(new_connection)
+
+                pid = RandomNumGen(int(round(time.time() * 1000))).randint(0, 65535)
+
+                self.active_connections[pid] = {"connection": new_connection, "game": None}
+
                 self.cReader.add_connection(new_connection)
+
+                self.cWriter.send(dg_deliver_pid(pid), new_connection)
         return Task.cont
 
     def tsk_reader_polling(self, taskdata):
@@ -67,48 +75,74 @@ class Server(ShowBase):
             dg = NetDatagram()
             if self.cReader.getData(dg):
                 iterator = PyDatagramIterator(dg)
-                if iterator.getUint8() == REQUEST_GAME:
-                    self.request_game(dg.getConnection())
+                msg_id = iterator.getUint8()
+                connection = dg.getConnection()
+
+                # Request a game
+                if msg_id == REQUEST_GAME:
+                    pid = iterator.getUint16()
+                    self.request_game(connection, pid)
+
+                # vote to start
+                elif msg_id == VOTE_TO_START:
+                    pid = iterator.getUint16()
+                    for g in self.games:
+                        if not g.started:
+                            if g.get_player_from_pid(pid):
+                                g.vote_to_start(pid)
+                                self.notify.debug("{} voted to start".format(pid))
+                                break
                 else:
                     self.notify.warning("Unknown datagram {}".format(PyDatagramIterator(dg)))
         return Task.cont
 
-    def request_game(self, connection):
-        if len(self.games) > 0:
-            # there is a game, lets see if its open
-            game = None
+    # Client requested a game
+    def request_game(self, connection, pid):
+        if not self.active_connections[pid]["game"]:
+            if len(self.games) > 0:
+                game = None
 
-            for g in self.games:
-                if g.open:
-                    game = g
-                    break
+                for g in self.games:
+                    # make sure game meets our qualifications
+                    if g.open and not g.started:
+                        game = g
+                        break
 
-            # make sure it found one
-            if game:
-                # add client
-                game.add_player(connection)
-                # send game to client
-                self.cWriter.send(dg_deliver_game(), connection)
+                if game:
+                    self.add_player_to_game(pid, game)
+                else:
+                    self.notify.debug("No available games, make one")
+                    self.create_game(pid)
             else:
-                self.notify.info("No available games, make one")
-                self.create_game(connection)
+                self.notify.debug("No available games, make one")
+                self.create_game(pid)
         else:
-            self.notify.info("No available games, make one")
-            self.create_game(connection)
+            self.notify.warning("{} requested game while already in a game".format(pid))
+            self.cWriter.send(dg_deliver_game(self.get_game_from_gid(self.active_connections[pid]["game"])), connection)
 
-    def create_game(self, connection):
-        self.notify.info("Creating game...")
+    def add_player_to_game(self, pid, game):
+        player_thing = self.active_connections[pid]
+
+        player_thing["game"] = game.get_gid()  # set the active_connection's game for this PID
+        connection = player_thing["connection"]  # get the connection
+        game.add_player(connection, pid)  # add player to game
+        self.cWriter.send(dg_deliver_game(game), connection)
+
+    def get_game_from_gid(self, gid):
+        for g in self.games:
+            if g.get_gid() == gid:
+                return g
+        return False
+
+    def create_game(self, pid):
+        gid = RandomNumGen(int(round(time.time() * 1000))).randint(0, 65535)
         # create game
-        game = Game()
+        game = Game(gid, self.cWriter)
 
-        # add player
-        game.add_player(connection)
+        self.add_player_to_game(pid, game)
 
         # add game to games array
         self.games.append(game)
-
-        # send to client
-        self.cWriter.send(dg_deliver_game(), connection)
 
 
 app = Server()

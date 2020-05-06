@@ -39,9 +39,14 @@ class Client(ShowBase):
         self.father = Father(self.cWriter)
 
         # inputs
+        self.accept('escape', self.debug)
 
         # try to connect
         self.connect()
+
+    def debug(self):
+        self.notify.info("Debug")
+        self.father.set_active_level("Main Menu")
 
     def connect(self):
         port_address = 9099
@@ -66,14 +71,48 @@ class Client(ShowBase):
             dg = NetDatagram()
             if self.cReader.getData(dg):
                 iterator = PyDatagramIterator(dg)
-                if iterator.getUint8() == DELIVER_GAME:
+                msg_id = iterator.getUint8()
+
+                # Received PID
+                if msg_id == DELIVER_PID:
+                    if not self.father.pid:
+                        pid = iterator.getUint16()
+                        self.notify.info("Received PID: {}".format(pid))
+                        self.father.pid = pid
+                    else:
+                        self.notify.warning("Received PID after already receiving one")
+
+                # Received Game
+                elif msg_id == DELIVER_GAME:
                     # if father is on main menu, send them to lobby
                     if self.father.active_level.name == "Main Menu":
                         self.father.set_active_level("Lobby")
+                        self.father.active_level.update_player_count(iterator.getUint8())
+                        self.father.active_level.update_vote_count(iterator.getUint8())
                     else:
                         self.notify.warning("Received a game while in a game")
+
+                # Received Player Count Update
+                elif msg_id == UPDATE_PLAYER_COUNT:
+                    if self.father.active_level.name == "Lobby":
+                        self.father.active_level.update_player_count(iterator.getUint8())
+
+                # Received Vote Count Update
+                elif msg_id == UPDATE_VOTE_COUNT:
+                    if self.father.active_level.name == "Lobby":
+                        self.father.active_level.update_vote_count(iterator.getUint8())
+
+                # Received Start GAme
+                elif msg_id == START_GAME:
+                    if self.father.active_level.name == "Lobby":
+                        self.father.set_active_level("Living Room")
+                    else:
+                        self.notify.warning("Received start game signal while in {}"
+                                            .format(self.father.active_level.name))
+
+                # Error
                 else:
-                    self.notify.warning("Unknown datagram")
+                    self.notify.warning("Unknown datagram: {}".format(msg_id))
         return Task.cont
 
 

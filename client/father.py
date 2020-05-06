@@ -20,24 +20,25 @@ class Father:
         self.game = None
 
         # Levels
-        self.level_mainmenu = MainMenuLevel(self)
+        self.level_main_menu = MainMenuLevel(self)
         self.level_loading = LoadingLevel(self)
-        self.level_game = LivingRoomLevel(self)
+        self.level_living_room = LivingRoomLevel(self)
         self.level_lobby = LobbyLevel(self)
 
         # Add levels to array
-        self.levels.append(self.level_mainmenu)
+        self.levels.append(self.level_main_menu)
         self.levels.append(self.level_loading)
-        self.levels.append(self.level_game)
+        self.levels.append(self.level_living_room)
         self.levels.append(self.level_lobby)
 
         # Set active level
-        self.active_level = self.level_mainmenu
+        self.active_level = self.level_main_menu
         self.active_level.create()
 
         # so we can send messages
         self.my_connection = None
         self.cWriter = cWriter
+        self.pid = None
 
     def set_active_level(self, level):
         self.active_level.destroy()
@@ -49,23 +50,7 @@ class Father:
             if l.name == level:
                 self.active_level = l
 
-        if level == "Game" and self.day == 0:
-            self.create_players()
-
         self.active_level.create()
-
-    def create_players(self):
-        # local client
-        self.players.append(Player(3, "Jaxsen", False, True))
-        for i in range(0, 9):
-            if i != 3:
-                self.players.append(Player(i, i, False, False))
-
-    def get_local_player(self):
-        for p in self.players:
-            if p.local_player:
-                return p
-        return False
 
     # use this to send messages to server
     def write(self, dg):

@@ -1,0 +1,17 @@
+NIGHT
+- tells how many people in the room
+- killer has option to kill or not to kill
+- chat during night
+	- player names not shown(?) just number
+		- [Voice 1] Hello
+		- [Voice 2] Hi
+
+DAY
+- choose what room
+- red players in your room last night
+- room that killed was in is highlighted red
+	- No killed means no red room
+- normally players can choose player to "block"
+	- allows player to choose a player to prevent from killing them
+	- No indicator that this works, though. may make it too easy
+	- Killer is told that his victim blocked him

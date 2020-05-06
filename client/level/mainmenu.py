@@ -13,38 +13,6 @@ class MainMenuLevel(Level):
     def __init__(self, father):
         Level.__init__(self, "Main Menu", "img/egg/mainmenu.egg", father)
 
-        # red pawn
-        pawn_red = Actor("models/egg/pawn",
-                         {"breath": "models/egg/pawn-breath"})
-        pawn_red.setPos(-4, 20, -2)
-        pawn_red.setH(-145)
-        pawn_red.loop('breath')
-        self.actors.append(pawn_red)
-        # light
-        slight_red = DirectionalLight('slight_red')
-        slight_red.setColor((0.682 / 1.5, 0.125 / 1.5, 0.121 / 1.5, 1))
-        slight_red.setLens(PerspectiveLens())
-        slight_red_np = render.attachNewNode(slight_red)
-        self.lights.append(slight_red_np)
-        self.lights[0].setPos(10, 15, 10)
-        self.lights[0].lookAt(self.actors[0])
-
-        # white pawn
-        pawn_white = Actor("models/egg/pawn",
-                           {"breath": "models/egg/pawn-breath"})
-        pawn_white.setPos(4, 20, -2)
-        pawn_white.setH(145)
-        pawn_white.loop('breath')
-        self.actors.append(pawn_white)
-        # light
-        dl_white = DirectionalLight('DL White')
-        dl_white.setColor((0.9/2.5, 0.9/2.5, 0.9/2.5, 1))
-        dl_white.setLens(PerspectiveLens())
-        dl_white_np = render.attachNewNode(dl_white)
-        self.lights.append(dl_white_np)
-        self.lights[1].setPos(-10, 15, 10)
-        self.lights[1].lookAt(self.actors[1])
-
     # for transitions between screens on this level
     # just destroy self.images and self.buttons
     def soft_destroy(self):
@@ -107,7 +75,7 @@ class MainMenuLevel(Level):
         self.images.append(settings_image)
 
     def goto_singleplayer(self):
-        self.father.write(dg_request_game())
+        self.father.write(dg_request_game(self.father.pid))
 
     def goto_play(self):
         self.soft_destroy()
@@ -142,6 +110,41 @@ class MainMenuLevel(Level):
         self.images.append(play_image)
 
     def create(self):
+        self.lights = []
+        self.actors = []
+
+        # red pawn
+        pawn_red = Actor("models/egg/pawn",
+                         {"breath": "models/egg/pawn-breath"})
+        pawn_red.setPos(-4, 20, -2)
+        pawn_red.setH(-145)
+        pawn_red.loop('breath')
+        self.actors.append(pawn_red)
+        # light
+        slight_red = DirectionalLight('slight_red')
+        slight_red.setColor((0.682 / 1.5, 0.125 / 1.5, 0.121 / 1.5, 1))
+        slight_red.setLens(PerspectiveLens())
+        slight_red_np = render.attachNewNode(slight_red)
+        self.lights.append(slight_red_np)
+        self.lights[0].setPos(10, 15, 10)
+        self.lights[0].lookAt(self.actors[0])
+
+        # white pawn
+        pawn_white = Actor("models/egg/pawn",
+                           {"breath": "models/egg/pawn-breath"})
+        pawn_white.setPos(4, 20, -2)
+        pawn_white.setH(145)
+        pawn_white.loop('breath')
+        self.actors.append(pawn_white)
+        # light
+        dl_white = DirectionalLight('DL White')
+        dl_white.setColor((0.9 / 2.5, 0.9 / 2.5, 0.9 / 2.5, 1))
+        dl_white.setLens(PerspectiveLens())
+        dl_white_np = render.attachNewNode(dl_white)
+        self.lights.append(dl_white_np)
+        self.lights[1].setPos(-10, 15, 10)
+        self.lights[1].lookAt(self.actors[1])
+
         # upon creation, enable these items
         self.actors[0].reparentTo(render)
         self.actors[0].setLight(self.lights[0])
