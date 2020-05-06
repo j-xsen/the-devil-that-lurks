@@ -15,3 +15,11 @@ def dg_vote_to_start(pid):
     dg.addUint8(VOTE_TO_START)
     dg.addUint16(pid)
     return dg
+
+
+def dg_set_room(pid, room):
+    dg = PyDatagram()
+    dg.addUint8(SET_ROOM)
+    dg.addUint16(pid)
+    dg.addUint8(room)
+    return dg

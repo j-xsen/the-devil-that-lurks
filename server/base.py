@@ -39,7 +39,7 @@ class Server(ShowBase):
         self.active_connections = {}
 
         # list of games
-        self.games = []
+        self.games = {}
 
         # connect
         port_address = 9099
@@ -86,14 +86,25 @@ class Server(ShowBase):
                 # vote to start
                 elif msg_id == VOTE_TO_START:
                     pid = iterator.getUint16()
-                    for g in self.games:
-                        if not g.started:
-                            if g.get_player_from_pid(pid):
-                                g.vote_to_start(pid)
-                                self.notify.debug("{} voted to start".format(pid))
-                                break
+                    game = self.get_game_from_pid(pid)
+                    if game:
+                        game.vote_to_start(pid)
+                    else:
+                        self.notify.warning("No game for {}".format(pid))
+
+                # set room
+                elif msg_id == SET_ROOM:
+                    pid = iterator.getUint16()
+                    room = iterator.getUint8()
+                    game = self.get_game_from_pid(pid)
+                    if game:
+                        # client has game, set their room status
+                        game.set_player_room(pid, room)
+                    else:
+                        self.notify.warning("{} attempted set room while not in a game".format(pid))
+
                 else:
-                    self.notify.warning("Unknown datagram {}".format(PyDatagramIterator(dg)))
+                    self.notify.warning("Unknown datagram {}".format(msg_id))
         return Task.cont
 
     # Client requested a game
@@ -129,9 +140,14 @@ class Server(ShowBase):
         self.cWriter.send(dg_deliver_game(game), connection)
 
     def get_game_from_gid(self, gid):
-        for g in self.games:
-            if g.get_gid() == gid:
-                return g
+        return self.games[gid]
+
+    def get_game_from_pid(self, pid):
+        gid = self.active_connections[pid]['game']
+        if gid:
+            return self.get_game_from_gid(gid)
+        else:
+            self.notify.warning("Can't find game w/ pid of {}".format(pid))
         return False
 
     def create_game(self, pid):
@@ -142,7 +158,7 @@ class Server(ShowBase):
         self.add_player_to_game(pid, game)
 
         # add game to games array
-        self.games.append(game)
+        self.games[gid] = game
 
 
 app = Server()

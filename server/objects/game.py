@@ -3,6 +3,7 @@ from communicator import *
 from objects.player import Player
 from direct.showbase.RandomNumGen import RandomNumGen
 import time
+from codes import DAY, NIGHT
 
 
 class Game:
@@ -15,7 +16,7 @@ class Game:
         self.gid = _gid
         self.open = open_to_public
         self.started = False
-        self.day_or_night = "day"
+        self.day_or_night = DAY
         self.red_room = None
         self.killer = None
         self.players = []
@@ -66,6 +67,15 @@ class Game:
                 count += 1
 
         return count
+
+    def set_player_room(self, pid, room):
+        # make sure it's day
+        if self.day_or_night == DAY:
+            # set their room
+            self.get_player_from_pid(pid).set_room(room)
+            self.notify.info("Set {} room to {}".format(pid, room))
+        else:
+            self.notify.warning("{} tried to set room during night".format(pid))
 
     def message_all_players(self, dg):
         for p in self.players:
