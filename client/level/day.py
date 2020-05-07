@@ -1,14 +1,17 @@
 from level.level import Level
 from direct.actor.Actor import Actor
 from direct.gui.DirectGui import DirectButton
+from direct.gui.OnscreenText import OnscreenText
 from communicator import dg_set_room
-from codes import KITCHEN, LIVING_ROOM, BEDROOM, PORCH, DINING_ROOM
+from codes import KITCHEN, LIVING_ROOM, BEDROOM, PORCH, DINING_ROOM, TIME
+from direct.task.TaskManagerGlobal import taskMgr, Task
+from objects.timer import Timer
 
 
 # Level that all come together during day
-class LivingRoomLevel(Level):
+class DayLevel(Level):
     def __init__(self, father):
-        Level.__init__(self, "Living Room", "img/egg/mainmenu.egg", father)
+        Level.__init__(self, "Day", "img/egg/mainmenu.egg", father)
         self.positions = [[(-3, 10, -1.5), -145],
                           [(-3, 15, -1.5), -145],
                           [(-3, 20, -1.5), -145],
@@ -48,6 +51,10 @@ class LivingRoomLevel(Level):
         self.buttons.append(btn_bedroom)
         self.buttons.append(btn_porch)
         self.buttons.append(btn_dining_room)
+
+        # timer
+        self.timer = Timer()
+        self.timer.start()
 
     def set_room(self, room):
         self.father.write(dg_set_room(self.father.pid, room))

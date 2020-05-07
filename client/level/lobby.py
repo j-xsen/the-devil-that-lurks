@@ -27,6 +27,14 @@ class LobbyLevel(Level):
         self.text.append(txt_votes)
         self.buttons.append(btn_vote)
 
+    # for transitions between screens on this level
+    # just destroy self.images and self.buttons
+    def soft_destroy(self):
+        for b in self.buttons:
+            self.destroy_button(b)
+        for t in self.text:
+            self.destroy_image(t)
+
     def vote_to_start(self):
         self.father.write(dg_vote_to_start(self.father.pid))
 

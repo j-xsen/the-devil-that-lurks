@@ -9,32 +9,46 @@ class Level:
         self.images = []
         self.text_nodepaths = []
         self.text = []
+        self.timer = None
 
     def create(self):
         # create actors
         # create models
         # create uis
-        print("Created {}".format(self.name))
         return
 
     def destroy(self):
         # delete actors
         # delete models
         # delete uis
-        print("Destroy {}".format(self.name))
 
         for a in self.actors:
             self.destroy_actor(a)
+        self.actors = []
+
         for l in self.lights:
             self.destroy_light(l)
+        self.lights = []
+
         for b in self.buttons:
             self.destroy_button(b)
+        self.buttons = []
+
         for i in self.images:
             self.destroy_image(i)
+        self.images = []
+
         for t in self.text_nodepaths:
             self.destroy_text_nodepaths(t)
+        self.text_nodepaths = []
+
         for t in self.text:
             self.destroy_text(t)
+        self.text = []
+
+        if self.timer:
+            self.timer.annihilate()
+            self.timer = None
 
         return
 

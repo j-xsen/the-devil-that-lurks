@@ -1,7 +1,7 @@
 from level.mainmenu import MainMenuLevel
-from level.loading import LoadingLevel
-from level.livingroom import LivingRoomLevel
+from level.day import DayLevel
 from level.lobby import LobbyLevel
+from level.night import NightLevel
 from player import Player
 from direct.directnotify.DirectNotifyGlobal import directNotify
 
@@ -21,15 +21,15 @@ class Father:
 
         # Levels
         self.level_main_menu = MainMenuLevel(self)
-        self.level_loading = LoadingLevel(self)
-        self.level_living_room = LivingRoomLevel(self)
+        self.level_day = DayLevel(self)
         self.level_lobby = LobbyLevel(self)
+        self.level_night = NightLevel(self)
 
         # Add levels to array
         self.levels.append(self.level_main_menu)
-        self.levels.append(self.level_loading)
-        self.levels.append(self.level_living_room)
+        self.levels.append(self.level_day)
         self.levels.append(self.level_lobby)
+        self.levels.append(self.level_night)
 
         # Set active level
         self.active_level = self.level_main_menu
@@ -51,6 +51,14 @@ class Father:
                 self.active_level = l
 
         self.active_level.create()
+
+    def change_time(self, time):
+        if time:
+            self.notify.debug("Setting time to day")
+            self.set_active_level("Day")
+        else:
+            self.notify.debug("Setting time to night")
+            self.set_active_level("Night")
 
     # use this to send messages to server
     def write(self, dg):

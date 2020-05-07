@@ -19,6 +19,12 @@ def dg_deliver_game(game):
     return dg
 
 
+def dg_kick_from_game():
+    dg = PyDatagram()
+    dg.addUint8(KICKED_FROM_GAME)
+    return dg
+
+
 # Lobby
 def dg_update_player_count(num):
     dg = PyDatagram()
@@ -37,4 +43,12 @@ def dg_update_vote_count(num):
 def dg_start_game():
     dg = PyDatagram()
     dg.addUint8(START_GAME)
+    return dg
+
+
+# Game
+def dg_change_time(game):
+    dg = PyDatagram()
+    dg.addUint8(CHANGE_TIME)
+    dg.addBool(game.day)
     return dg

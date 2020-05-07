@@ -35,10 +35,10 @@ class Server(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
 
-        # array of connections
+        # dict of connections
         self.active_connections = {}
 
-        # list of games
+        # dict of games
         self.games = {}
 
         # connect
@@ -63,7 +63,7 @@ class Server(ShowBase):
 
                 pid = RandomNumGen(int(round(time.time() * 1000))).randint(0, 65535)
 
-                self.active_connections[pid] = {"connection": new_connection, "game": None}
+                self.active_connections[pid] = {"connection": new_connection, "gid": None}
 
                 self.cReader.add_connection(new_connection)
 
@@ -109,14 +109,15 @@ class Server(ShowBase):
 
     # Client requested a game
     def request_game(self, connection, pid):
-        if not self.active_connections[pid]["game"]:
+        if not self.active_connections[pid]["gid"]:
             if len(self.games) > 0:
                 game = None
 
                 for g in self.games:
+                    this_game = self.games[g]
                     # make sure game meets our qualifications
-                    if g.open and not g.started:
-                        game = g
+                    if this_game.open and not this_game.started:
+                        game = this_game
                         break
 
                 if game:
@@ -129,22 +130,35 @@ class Server(ShowBase):
                 self.create_game(pid)
         else:
             self.notify.warning("{} requested game while already in a game".format(pid))
-            self.cWriter.send(dg_deliver_game(self.get_game_from_gid(self.active_connections[pid]["game"])), connection)
+
+            # remove them from that game
+            self.remove_player_from_game(pid, self.active_connections[pid]["gid"])
 
     def add_player_to_game(self, pid, game):
         player_thing = self.active_connections[pid]
 
-        player_thing["game"] = game.get_gid()  # set the active_connection's game for this PID
+        player_thing["gid"] = game.get_gid()  # set the active_connection's game for this PID
         connection = player_thing["connection"]  # get the connection
         game.add_player(connection, pid)  # add player to game
         self.cWriter.send(dg_deliver_game(game), connection)
 
+    def remove_player_from_game(self, pid, gid):
+        player_thing = self.active_connections[pid]
+
+        player_thing["game"] = None
+        self.get_game_from_gid(gid).remove_player(pid)
+        self.cWriter.send(dg_kick_from_game(), player_thing["connection"])
+
     def get_game_from_gid(self, gid):
-        return self.games[gid]
+        if gid in self.games:
+            return self.games[gid]
+        else:
+            return False
 
     def get_game_from_pid(self, pid):
-        gid = self.active_connections[pid]['game']
+        gid = self.active_connections[pid]['gid']
         if gid:
+            self.notify.debug("Found gid of {} for player {}".format(gid, pid))
             return self.get_game_from_gid(gid)
         else:
             self.notify.warning("Can't find game w/ pid of {}".format(pid))
