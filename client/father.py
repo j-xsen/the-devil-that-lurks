@@ -52,10 +52,11 @@ class Father:
 
         self.active_level.create()
 
-    def change_time(self, time):
+    def change_time(self, time, day_count):
         if time:
             self.notify.debug("Setting time to day")
             self.set_active_level("Day")
+            self.active_level.set_day_count(day_count)
         else:
             self.notify.debug("Setting time to night")
             self.set_active_level("Night")

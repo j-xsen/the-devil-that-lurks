@@ -1,19 +1,22 @@
 from direct.directnotify.DirectNotifyGlobal import directNotify
 from communicator import *
 from objects.player import Player
+from objects.ai import AI
 from direct.showbase.RandomNumGen import RandomNumGen
 import time
 from direct.task.TaskManagerGlobal import taskMgr, Task
+from codes import MAX_PLAYERS
 
 
 class Game:
     notify = directNotify.newCategory("game")
 
-    def __init__(self, _gid, _cwriter, open_to_public=1):
+    def __init__(self, _gid, _cwriter, _on_delete, open_to_public=1):
         self.notify.info("Creating game...")
 
         self.cWriter = _cwriter
         self.gid = _gid
+        self.on_delete = _on_delete
         self.open = open_to_public
         self.started = False
         self.day = True
@@ -21,6 +24,15 @@ class Game:
         self.red_room = None
         self.killer = None
         self.players = []
+
+    def delete_this_game(self):
+        # end tasks
+        taskMgr.remove("DayNight Cycle {}".format(self.gid))
+
+        # tell clients
+        self.message_all_players(dg_kick_from_game(GAME_DELETED))
+
+        self.on_delete(self.gid)
 
     def add_player(self, connection, pid):
         self.notify.debug("Adding player to game")
@@ -88,26 +100,50 @@ class Game:
         self.started = True
         self.day_count = 1
 
+        # create AI
+        while self.get_player_count() < MAX_PLAYERS:
+            new_ai = AI()
+            self.players.append(new_ai)
+
         # tell players
         self.message_all_players(dg_start_game())
 
         # create task to change time of day
-        taskMgr.doMethodLater(TIME, self.change_time, 'Change day/night cycle')
+        taskMgr.doMethodLater(TIME, self.change_time, "DayNight Cycle {}".format(self.gid))
 
     def change_time(self, taskdata):
         self.notify.debug("Changing time")
 
         # set vars
         self.day = not self.day
-        self.day_count += 1
+        if self.day:
+            # only change day count when it becomes day
+            self.day_count += 1
+
+        if not self.any_real_players():
+            self.notify.debug("No non-ai players in game {}".format(self.gid))
+            self.delete_this_game()
+            return Task.done
+
+        if self.day and self.day_count > MAX_DAYS:
+            self.notify.debug("Maximum day_count reached: {}/{}".format(self.day_count, MAX_DAYS))
+            self.delete_this_game()
+            return Task.done
 
         # tell players
         self.message_all_players(dg_change_time(self))
 
-        # TODO
-        #   check if game has ended
         return Task.again
+
+    def any_real_players(self):
+        any_real = False
+        for p in self.players:
+            if not p.ai:
+                any_real = True
+                break
+        return any_real
 
     def message_all_players(self, dg):
         for p in self.players:
-            self.cWriter.send(dg, p.get_connection())
+            if not p.ai:
+                self.cWriter.send(dg, p.get_connection())

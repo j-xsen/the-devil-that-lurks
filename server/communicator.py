@@ -19,9 +19,10 @@ def dg_deliver_game(game):
     return dg
 
 
-def dg_kick_from_game():
+def dg_kick_from_game(reason):
     dg = PyDatagram()
     dg.addUint8(KICKED_FROM_GAME)
+    dg.addUint8(reason)
     return dg
 
 
@@ -51,4 +52,5 @@ def dg_change_time(game):
     dg = PyDatagram()
     dg.addUint8(CHANGE_TIME)
     dg.addBool(game.day)
+    dg.addUint8(game.day_count)
     return dg

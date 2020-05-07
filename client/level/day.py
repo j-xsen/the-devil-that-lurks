@@ -52,9 +52,17 @@ class DayLevel(Level):
         self.buttons.append(btn_porch)
         self.buttons.append(btn_dining_room)
 
+        # day count
+        txt_day = OnscreenText(text="Day: 1", pos=(0.75, 0), scale=0.2, fg=(1, 1, 1, 1))
+
+        self.text.append(txt_day)
+
         # timer
         self.timer = Timer()
         self.timer.start()
 
     def set_room(self, room):
         self.father.write(dg_set_room(self.father.pid, room))
+
+    def set_day_count(self, num):
+        self.text[0].text = "Day: {}".format(num)

@@ -117,8 +117,11 @@ class Client(ShowBase):
 
                 # Day/Night Cycle
                 elif msg_id == CHANGE_TIME:
+                    self.notify.debug("Received change_time")
                     if self.father.active_level.name != "Main Menu":
-                        self.father.change_time(iterator.getBool())
+                        day = iterator.getBool()
+                        day_count = iterator.getUint8()
+                        self.father.change_time(day, day_count)
                     else:
                         self.notify.warning("Received CHANGE_TIME while not in game")
 

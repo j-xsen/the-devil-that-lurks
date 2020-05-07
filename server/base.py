@@ -19,6 +19,7 @@ from objects.game import Game
 # no window
 loadPrcFileData("", "\n".join(["notify-level-server debug",
                                "notify-level-game debug",
+                               "notify-level-ai debug",
                                "window-type none"]))
 
 
@@ -167,12 +168,16 @@ class Server(ShowBase):
     def create_game(self, pid):
         gid = RandomNumGen(int(round(time.time() * 1000))).randint(0, 65535)
         # create game
-        game = Game(gid, self.cWriter)
+        game = Game(gid, self.cWriter, self.delete_game)
 
         self.add_player_to_game(pid, game)
 
         # add game to games array
         self.games[gid] = game
+
+    def delete_game(self, gid):
+        self.notify.info("Delete game: {}".format(gid))
+        del self.games[gid]
 
 
 app = Server()

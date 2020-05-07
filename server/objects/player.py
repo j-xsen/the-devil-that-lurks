@@ -1,11 +1,12 @@
 class Player:
-    def __init__(self, _connection, _pid):
+    def __init__(self, _connection, _pid, _ai=False):
         self.voted_to_start = False
         self.room = None
         self.blocking = None
         self.connection = _connection
         self.pid = _pid
         self.alive = True
+        self.ai = _ai
 
     def get_pid(self):
         return self.pid
