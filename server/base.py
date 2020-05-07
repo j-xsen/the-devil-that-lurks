@@ -133,7 +133,7 @@ class Server(ShowBase):
             self.notify.warning("{} requested game while already in a game".format(pid))
 
             # remove them from that game
-            self.remove_player_from_game(pid, self.active_connections[pid]["gid"])
+            self.remove_player_from_game(pid, ALREADY_IN_GAME)
 
     def add_player_to_game(self, pid, game):
         player_thing = self.active_connections[pid]
@@ -143,12 +143,13 @@ class Server(ShowBase):
         game.add_player(connection, pid)  # add player to game
         self.cWriter.send(dg_deliver_game(game), connection)
 
-    def remove_player_from_game(self, pid, gid):
+    def remove_player_from_game(self, pid, reason):
         player_thing = self.active_connections[pid]
+        self.get_game_from_gid(player_thing["gid"]).remove_player(pid)
 
         player_thing["game"] = None
-        self.get_game_from_gid(gid).remove_player(pid)
-        self.cWriter.send(dg_kick_from_game(), player_thing["connection"])
+
+        self.cWriter.send(dg_kick_from_game(reason), player_thing["connection"])
 
     def get_game_from_gid(self, gid):
         if gid in self.games:

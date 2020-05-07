@@ -42,7 +42,7 @@ class Game:
             self.cWriter.send(dg_update_player_count(self.get_player_count()), p.get_connection())
 
     def remove_player(self, pid):
-        self.notify.debug("Removing player {} from game {}".format(pid, self.gid))
+        self.notify.info("Removing player {} from game {}".format(pid, self.gid))
         self.players.remove(self.get_player_from_pid(pid))
 
     def get_player_from_pid(self, pid):
