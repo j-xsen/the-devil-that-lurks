@@ -16,7 +16,7 @@ class Alert:
         if reason in LOCAL_ENGLISH:
             self.dialog = OkDialog(dialogName="OkDialog", text=LOCAL_ENGLISH[reason], command=self.destroy)
         else:
-            self.dialog = OkDialog(dialogName="OkDialog", text=LOCAL_ENGLISH[GENERAL])
+            self.dialog = OkDialog(dialogName="OkDialog", text=LOCAL_ENGLISH[GENERAL], command=self.destroy)
 
     def destroy(self, arg):
         self.dialog.cleanup()

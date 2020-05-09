@@ -3,6 +3,13 @@ from direct.distributed.PyDatagram import PyDatagram
 from codes import *
 
 
+# General
+def dg_kill_connection():
+    dg = PyDatagram()
+    dg.addUint8(KILLED_CONNECTION)
+    return dg
+
+
 # Main menu
 def dg_deliver_pid(pid):
     dg = PyDatagram()

@@ -2,6 +2,7 @@ from direct.showbase.ShowBase import ShowBase
 from panda3d.core import AntialiasAttrib, loadPrcFileData
 from direct.task.TaskManagerGlobal import taskMgr, Task
 from direct.directnotify.DirectNotifyGlobal import directNotify
+import sys
 
 # networking
 from panda3d.core import QueuedConnectionManager
@@ -13,6 +14,7 @@ from direct.distributed.PyDatagramIterator import PyDatagramIterator
 
 from codes import *
 from father import Father
+from communicator import dg_send_heartbeat
 from objects.alert import Alert
 
 loadPrcFileData("", "\n".join(["notify-level-lp debug",
@@ -64,8 +66,13 @@ class Client(ShowBase):
 
             # poll
             taskMgr.add(self.tsk_reader, "Poll the connection reader", -39)
+            taskMgr.doMethodLater(HEARTBEAT_PLAYER, self.heartbeat, "Send heartbeat")
         else:
             self.notify.info("Could not connect!")
+
+    def heartbeat(self, taskdata):
+        self.father.write(dg_send_heartbeat(self.father.pid))
+        return Task.again
 
     def tsk_reader(self, taskdata):
         if self.cReader.dataAvailable():
@@ -78,7 +85,7 @@ class Client(ShowBase):
                 if msg_id == DELIVER_PID:
                     if not self.father.pid:
                         pid = iterator.getUint16()
-                        self.notify.info("Received PID: {}".format(pid))
+                        self.notify.debug("Received PID: {}".format(pid))
                         self.father.pid = pid
                     else:
                         self.notify.warning("Received PID after already receiving one")
@@ -95,9 +102,20 @@ class Client(ShowBase):
 
                 # Kicked From Game
                 elif msg_id == KICKED_FROM_GAME:
-                    self.notify.info("Removed from game")
+                    self.notify.debug("Removed from game")
                     self.father.set_active_level("Main Menu")
-                    Alert(iterator.getUint8())
+
+                    reason = iterator.getUint8()
+
+                    # need we tell them that they hit leave game?
+                    if reason != LEFT_GAME:
+                        Alert(iterator.getUint8())
+
+                # Connection was killed
+                elif msg_id == KILLED_CONNECTION:
+                    self.notify.debug("Connection has been killed")
+                    self.cManager.closeConnection(self.father.my_connection)
+                    sys.exit()
 
                 # Received Player Count Update
                 elif msg_id == UPDATE_PLAYER_COUNT:

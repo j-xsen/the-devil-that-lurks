@@ -12,7 +12,7 @@ class Game:
     notify = directNotify.newCategory("game")
 
     def __init__(self, _gid, _cwriter, _on_delete, open_to_public=1):
-        self.notify.debug("Creating game...")
+        self.notify.debug("Creating game {}".format(_gid))
 
         self.cWriter = _cwriter
         self.gid = _gid
@@ -42,8 +42,12 @@ class Game:
             self.cWriter.send(dg_update_player_count(self.get_player_count()), p.get_connection())
 
     def remove_player(self, pid):
-        self.notify.info("Removing player {} from game {}".format(pid, self.gid))
+        self.notify.debug("Removing player {} from game {}".format(pid, self.gid))
         self.players.remove(self.get_player_from_pid(pid))
+
+        # check if any real players left
+        if not self.any_real_players():
+            self.delete_this_game()
 
     def get_player_from_pid(self, pid):
         for p in self.players:
@@ -94,7 +98,7 @@ class Game:
             self.notify.warning("{} tried to set room during night".format(pid))
 
     def start_game(self):
-        self.notify.debug("Starting game: {}".format(self.gid))
+        self.notify.info("Starting game: {}".format(self.gid))
 
         # set variables
         self.started = True

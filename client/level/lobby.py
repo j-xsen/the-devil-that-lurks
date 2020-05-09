@@ -3,7 +3,7 @@ from level.level import Level
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.DirectGui import DirectButton
 
-from communicator import dg_vote_to_start
+from communicator import dg_vote_to_start, dg_leave_lobby
 
 
 class LobbyLevel(Level):
@@ -21,11 +21,13 @@ class LobbyLevel(Level):
         txt_votes = OnscreenText(text="0/0", pos=(0, -0.75), scale=0.2, fg=(1, 1, 1, 1))
 
         btn_vote = DirectButton(text="Vote to start", scale=0.1, pos=(0, 0, -0.5), command=self.vote_to_start)
+        btn_leave = DirectButton(text="Leave Lobby", scale=0.1, pos=(0.75, 0, 0), command=self.leave)
 
         self.text.append(txt_current)
         self.text.append(txt_players)
         self.text.append(txt_votes)
         self.buttons.append(btn_vote)
+        self.buttons.append(btn_leave)
 
     # for transitions between screens on this level
     # just destroy self.images and self.buttons
@@ -37,6 +39,9 @@ class LobbyLevel(Level):
 
     def vote_to_start(self):
         self.father.write(dg_vote_to_start(self.father.pid))
+
+    def leave(self):
+        self.father.write(dg_leave_lobby(self.father.pid))
 
     def update_player_count(self, count):
         self.players_count = count

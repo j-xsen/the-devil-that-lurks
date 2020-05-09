@@ -51,6 +51,7 @@ class Server(ShowBase):
         # tasks
         taskMgr.add(self.tsk_listener_polling, "Poll the connection listener", -39)
         taskMgr.add(self.tsk_reader_polling, "Poll the connection reader", -40)
+        taskMgr.doMethodLater(HEARTBEAT_SERVER, self.heartbeat, "Poll connection heartbeats")
 
     def tsk_listener_polling(self, taskdata):
         if self.cListener.newConnectionAvailable():
@@ -64,7 +65,9 @@ class Server(ShowBase):
 
                 pid = RandomNumGen(int(round(time.time() * 1000))).randint(0, 65535)
 
-                self.active_connections[pid] = {"connection": new_connection, "gid": None}
+                self.active_connections[pid] = {"connection": new_connection,
+                                                "gid": None,
+                                                "heartbeat": True}
 
                 self.cReader.add_connection(new_connection)
 
@@ -93,6 +96,11 @@ class Server(ShowBase):
                     else:
                         self.notify.warning("No game for {}".format(pid))
 
+                # leave lobby
+                elif msg_id == LEAVE_LOBBY:
+                    pid = iterator.getUint16()
+                    self.remove_player_from_game(pid, LEFT_GAME)
+
                 # set room
                 elif msg_id == SET_ROOM:
                     pid = iterator.getUint16()
@@ -103,6 +111,11 @@ class Server(ShowBase):
                         game.set_player_room(pid, room)
                     else:
                         self.notify.warning("{} attempted set room while not in a game".format(pid))
+
+                # send heartbeat
+                elif msg_id == HEARTBEAT:
+                    pid = iterator.getUint16()
+                    self.active_connections[pid]["heartbeat"] = True
 
                 else:
                     self.notify.warning("Unknown datagram {}".format(msg_id))
@@ -190,6 +203,34 @@ class Server(ShowBase):
                 self.active_connections[p.get_pid()]["gid"] = None
 
         del self.games[gid]
+
+    # ran every 11 seconds
+    def heartbeat(self, taskdata):
+        remove = []
+
+        for c in self.active_connections:
+            # check if player didn't respond last time
+            if not self.active_connections[c]["heartbeat"]:
+                # Player failed to reply
+                self.notify.debug("Player {} has no heartbeat!". format(c))
+                remove.append(c)
+            else:
+                # player passed
+                self.active_connections[c]["heartbeat"] = False
+
+        # delete the dead ones
+        for r in remove:
+            # Remove player from game if they're in one
+            game = self.get_game_from_pid(r)
+            if game:
+                # remove player from game if they're in a game
+                game.remove_player(r)
+
+            # tell them in case? they're still here?
+            self.cWriter.send(dg_kill_connection(), self.active_connections[r]["connection"])
+            del self.active_connections[r]
+
+        return Task.again
 
 
 app = Server()
