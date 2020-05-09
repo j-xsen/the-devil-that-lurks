@@ -37,8 +37,7 @@ class Game:
 
         p = Player(self.generate_local_id(), _connection=connection, _pid=pid)
         self.players.append(p)
-        for p in self.players:
-            self.cWriter.send(dg_update_player_count(self.get_player_count()), p.get_connection())
+        self.message_all_players(dg_update_player_count(self.get_player_count()))
 
     def remove_player(self, pid):
         self.notify.debug("Removing player {} from game {}".format(pid, self.gid))
@@ -47,6 +46,12 @@ class Game:
         # check if any real players left
         if not self.any_real_players():
             self.delete_this_game()
+
+        # tell all players new player count
+        self.message_all_players(dg_update_player_count(self.get_player_count()))
+
+        if not self.started:
+            self.message_all_players(dg_update_vote_count(self.get_vote_count()))
 
     def get_player_from_pid(self, pid):
         for p in self.players:

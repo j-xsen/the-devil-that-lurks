@@ -21,9 +21,6 @@ class MainMenuLevel(Level):
         for i in self.images:
             self.destroy_image(i)
 
-    def exit_game(self):
-        sys.exit()
-
     def goto_home(self):
         self.soft_destroy()
 
@@ -37,7 +34,7 @@ class MainMenuLevel(Level):
                                          self.sprites.find('**/mm-exit-hover'),
                                          self.sprites.find('**/mm-exit-disabled')),
                                    relief=None, geom_scale=(0.666, 0, 0.25), geom_pos=(0, 0, -0.75),
-                                   command=self.exit_game)
+                                   command=self.father.exit_game)
         settings_button = DirectButton(geom=(self.sprites.find('**/mm-settings-ready'),
                                              self.sprites.find('**/mm-settings-click'),
                                              self.sprites.find('**/mm-settings-hover'),

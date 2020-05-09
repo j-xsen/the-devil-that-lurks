@@ -2,13 +2,15 @@ from level.mainmenu import MainMenuLevel
 from level.day import DayLevel
 from level.lobby import LobbyLevel
 from level.night import NightLevel
-from player import Player
 from direct.directnotify.DirectNotifyGlobal import directNotify
+from communicator import dg_goodbye
+import sys
+import atexit
 
 
 # The Father object holds all UIs and Levels
 class Father:
-    def __init__(self, cWriter):
+    def __init__(self, _cWriter, _cManager):
         # notify
         self.notify = directNotify.newCategory("father")
 
@@ -37,8 +39,11 @@ class Father:
 
         # so we can send messages
         self.my_connection = None
-        self.cWriter = cWriter
+        self.cWriter = _cWriter
+        self.cManager = _cManager
         self.pid = None
+
+        atexit.register(self.exit_game)
 
     def set_active_level(self, level):
         self.active_level.destroy()
@@ -60,6 +65,12 @@ class Father:
         else:
             self.notify.debug("Setting time to night")
             self.set_active_level("Night")
+
+    def exit_game(self):
+        # tell server
+        self.write(dg_goodbye(self.pid))
+        self.cManager.closeConnection(self.my_connection)
+        sys.exit()
 
     # use this to send messages to server
     def write(self, dg):

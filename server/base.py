@@ -137,6 +137,14 @@ class Server(ShowBase):
                     except AssertionError:
                         self.notify.warning("Received invalid HEARTBEAT")
 
+                elif msg_id == GOODBYE:
+                    try:
+                        self.notify.debug("Received goodbye")
+                        pid = iterator.getUint16()
+                        self.remove_player(pid)
+                    except AssertionError:
+                        self.notify.warning("Received invalid GOODBYE")
+
                 else:
                     self.notify.warning("Unknown datagram {}".format(msg_id))
         return Task.cont
@@ -240,17 +248,17 @@ class Server(ShowBase):
 
         # delete the dead ones
         for r in remove:
-            # Remove player from game if they're in one
-            game = self.get_game_from_pid(r)
-            if game:
-                # remove player from game if they're in a game
-                game.remove_player(r)
-
-            # tell them in case? they're still here?
-            self.cWriter.send(dg_kill_connection(), self.active_connections[r]["connection"])
-            del self.active_connections[r]
+            self.remove_player(r)
 
         return Task.again
+
+    def remove_player(self, pid):
+        game = self.get_game_from_pid(pid)
+        if game:
+            game.remove_player(pid)
+
+        self.cWriter.send(dg_kill_connection(), self.active_connections[pid]["connection"])
+        del self.active_connections[pid]
 
 
 app = Server()

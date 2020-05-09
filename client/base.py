@@ -14,7 +14,7 @@ from direct.distributed.PyDatagramIterator import PyDatagramIterator
 
 from codes import *
 from father import Father
-from communicator import dg_send_heartbeat
+from communicator import dg_send_heartbeat, dg_goodbye
 from objects.alert import Alert
 
 loadPrcFileData("", "\n".join(["notify-level-lp debug",
@@ -39,7 +39,7 @@ class Client(ShowBase):
         self.disableMouse()
 
         # create father
-        self.father = Father(self.cWriter)
+        self.father = Father(self.cWriter, self.cManager)
 
         # inputs
         self.accept('escape', self.debug)
@@ -136,8 +136,7 @@ class Client(ShowBase):
                 # Connection was killed
                 elif msg_id == KILLED_CONNECTION:
                     self.notify.debug("Connection has been killed")
-                    self.cManager.closeConnection(self.father.my_connection)
-                    sys.exit()
+                    self.exit_game()
 
                 # Received Player Count Update
                 elif msg_id == UPDATE_PLAYER_COUNT:

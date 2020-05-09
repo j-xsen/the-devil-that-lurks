@@ -11,6 +11,13 @@ def dg_send_heartbeat(pid):
     return dg
 
 
+def dg_goodbye(pid):
+    dg = PyDatagram()
+    dg.addUint8(GOODBYE)
+    dg.addUint16(pid)
+    return dg
+
+
 # MAIN MENU
 def dg_request_game(pid):
     dg = PyDatagram()
