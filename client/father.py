@@ -18,8 +18,9 @@ class Father:
         self.levels = []
         self.rooms = []
         self.players = {}
-        self.day = 0
+        self.day = 1
         self.game = None
+        self.killer = False
 
         # Levels
         self.level_main_menu = MainMenuLevel(self)
@@ -57,14 +58,14 @@ class Father:
 
         self.active_level.create()
 
-    def change_time(self, time, day_count):
-        if time:
-            self.notify.debug("Setting time to day")
-            self.set_active_level("Day")
-            self.active_level.set_day_count(day_count)
-        else:
-            self.notify.debug("Setting time to night")
-            self.set_active_level("Night")
+    def goto_day(self, day_count):
+        self.notify.debug("Setting time to day")
+        self.day = day_count
+        self.set_active_level("Day")
+
+    def goto_night(self):
+        self.notify.debug("Setting time to night")
+        self.set_active_level("Night")
 
     def exit_game(self):
         # tell server

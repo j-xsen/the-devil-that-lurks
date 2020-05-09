@@ -4,22 +4,24 @@ from objects.player import Player
 from objects.ai import AI
 from direct.task.TaskManagerGlobal import taskMgr, Task
 from codes import MAX_PLAYERS
+import random
 
 
 class Game:
     notify = directNotify.newCategory("game")
 
-    def __init__(self, _gid, _cwriter, _on_delete, open_to_public=1):
+    def __init__(self, _gid, _cwriter, _on_delete, _on_remove_player, open_to_public=1):
         self.notify.debug("Creating game {}".format(_gid))
 
         self.cWriter = _cwriter
         self.gid = _gid
         self.on_delete = _on_delete
+        self.on_remove_player = _on_remove_player
         self.open = open_to_public
         self.started = False
         self.day = True
         self.day_count = 0
-        self.red_room = None
+        self.red_room = 0
         self.killer = None
         self.players = []
 
@@ -52,6 +54,21 @@ class Game:
 
         if not self.started:
             self.message_all_players(dg_update_vote_count(self.get_vote_count()))
+
+    def remove_player_from_local_id(self, local_id):
+        self.notify.debug("Removing player {} from game {}".format(local_id, self.gid))
+        self.players.remove(self.get_player_from_local_id(local_id))
+
+        if not self.any_real_players():
+            self.delete_this_game()
+
+        if not self.started:
+            self.message_all_players(dg_update_player_count(self.get_player_count()))
+            self.message_all_players(dg_update_vote_count(self.get_vote_count()))
+        else:
+            # TODO
+            #   tell players to mark left as dead
+            self.notify.debug("Removed player from game")
 
     def get_player_from_pid(self, pid):
         for p in self.players:
@@ -101,6 +118,14 @@ class Game:
         else:
             self.notify.warning("{} tried to set room during night".format(pid))
 
+    # returns array of local_ids of NOT the killers
+    def get_players_in_room(self, room):
+        in_room = []
+        for p in self.players:
+            if p.get_room() == room and p.get_local_id() != self.killer:
+                in_room.append(p.get_local_id())
+        return in_room
+
     def start_game(self):
         self.notify.info("Starting game: {}".format(self.gid))
 
@@ -113,11 +138,26 @@ class Game:
             new_ai = AI(self.generate_local_id())
             self.players.append(new_ai)
 
+        # assign killer
+        # TODO
+        #   make it random and not just the first player - but i need to debug
+        self.killer = self.players[0].get_local_id()
+        self.notify.debug("Killer: {}".format(self.killer))
+
         # tell players
         self.message_all_players(dg_start_game(self))
 
+        # tell killer
+        self.message_killer(dg_you_are_killer())
+
         # create task to change time of day
         taskMgr.doMethodLater(TIME, self.change_time, "DayNight Cycle {}".format(self.gid))
+
+    def set_kill_choice(self, pid, choice):
+        if self.killer == self.get_local_id_from_pid(pid):
+            self.get_player_from_pid(pid).set_wants_to_kill(choice)
+        else:
+            self.notify.warning("player {} tried to set kill, but they're not the killer".format(pid))
 
     def generate_local_id(self):
         local_id = len(self.players)
@@ -131,19 +171,74 @@ class Game:
 
     def get_player_from_local_id(self, local_id):
         for p in self.players:
-            if p.get_local_id == local_id:
+            if p.get_local_id() == local_id:
                 return p
         return False
 
-    def change_time(self, taskdata):
-        self.notify.debug("Changing time")
+    def get_pid_from_local_id(self, local_id):
+        for p in self.players:
+            if p.get_local_id() == local_id:
+                self.notify.debug("{} does match {}".format(p.get_local_id(), local_id))
+                return p.get_pid()
+            else:
+                self.notify.debug("{} does not match {}".format(p.get_local_id(), local_id))
+        return False
 
+    def get_local_id_from_pid(self, pid):
+        for p in self.players:
+            if p.get_pid() == pid:
+                return p.get_local_id()
+        return False
+
+    def change_time(self, taskdata):
         # set vars
         self.day = not self.day
         if self.day:
             # only change day count when it becomes day
             self.day_count += 1
+        else:
+            # it's going into night
 
+            # remove killer's choice bc it defaults at No
+            self.get_player_from_local_id(self.killer).set_wants_to_kill = False
+
+            for p in self.players:
+                # run ai
+                if p.ai:
+                    p.night_run()
+                else:
+                    # make sure every one's picked a room, if they haven't give them a random one
+                    if not p.get_room():
+                        p.random_room()
+
+        # kill player if going into day
+        if self.day:
+            # check if killer wants to kill
+            killer = self.get_player_from_local_id(self.killer)
+            if killer.get_wants_to_kill():
+                # get red_room
+                self.red_room = killer.get_room()
+                # get all players in that room
+                possible_victims = self.get_players_in_room(self.red_room)
+                if len(possible_victims) > 0:
+                    # select random
+                    victim = random.choice(possible_victims)
+
+                    self.notify.debug("Killing {} in {}".format(victim, self.gid))
+
+                    to_remove = self.get_player_from_local_id(victim)
+                    if to_remove.ai:
+                        self.remove_player_from_local_id(victim)
+                    else:
+                        self.on_remove_player(self.get_pid_from_local_id(victim), KILLED)
+                else:
+                    self.red_room = 0
+                    self.message_killer(dg_kill_failed_empty_room())
+            else:
+                # killer doesn't want to kill
+                self.red_room = 0
+
+        # check if need to end game
         if not self.any_real_players():
             self.notify.debug("No non-ai players in game {}".format(self.gid))
             self.delete_this_game()
@@ -155,7 +250,10 @@ class Game:
             return Task.done
 
         # tell players
-        self.message_all_players(dg_change_time(self))
+        if self.day:
+            self.message_all_players(dg_goto_day(self))
+        else:
+            self.message_all_players(dg_goto_night(self))
 
         return Task.again
 
@@ -170,4 +268,12 @@ class Game:
     def message_all_players(self, dg):
         for p in self.players:
             if not p.ai:
-                self.cWriter.send(dg, p.get_connection())
+                self.message_player(dg, p.get_local_id())
+
+    def message_player(self, dg, local_id):
+        p = self.get_player_from_local_id(local_id)
+        if not p.ai:
+            self.cWriter.send(dg, p.get_connection())
+
+    def message_killer(self, dg):
+        self.message_player(dg, self.killer)

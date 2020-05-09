@@ -129,6 +129,20 @@ class Server(ShowBase):
                     except AssertionError:
                         self.notify.warning("Received invalid SET_ROOM")
 
+                elif msg_id == SET_KILL:
+                    try:
+                        pid = iterator.getUint16()
+                        choice = iterator.getBool()
+                    except AssertionError:
+                        self.notify.warning("Received invalid SET_KILL")
+                        return Task.cont
+
+                    game = self.get_game_from_pid(pid)
+                    if game:
+                        game.set_kill_choice(pid, choice)
+                    else:
+                        self.notify.warning("{} attempted to set kill while not in a game".format(pid))
+
                 # send heartbeat
                 elif msg_id == HEARTBEAT:
                     try:
@@ -214,11 +228,11 @@ class Server(ShowBase):
     def create_game(self, pid):
         gid = RandomNumGen(int(round(time.time() * 1000))).randint(0, 65535)
         # create game
-        game = Game(gid, self.cWriter, self.delete_game)
+        game = Game(gid, self.cWriter, self.delete_game, self.remove_player_from_game)
 
         self.add_player_to_game(pid, game)
 
-        # add game to games array
+        # add game to games dict
         self.games[gid] = game
 
     def delete_game(self, gid):

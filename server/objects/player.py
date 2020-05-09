@@ -1,3 +1,7 @@
+import random
+from codes import ROOMS
+
+
 class Player:
     def __init__(self, _local_id, _name, _connection=None, _pid=None, _ai=False):
         self.voted_to_start = False
@@ -9,6 +13,7 @@ class Player:
         self.ai = _ai
         self.local_id = _local_id
         self.name = _name
+        self.wants_to_kill = False
 
     def get_pid(self):
         return self.pid
@@ -21,6 +26,13 @@ class Player:
 
     def get_connection(self):
         return self.connection
+
+    # self.wants_to_kill
+    def set_wants_to_kill(self, want):
+        self.wants_to_kill = want
+
+    def get_wants_to_kill(self):
+        return self.wants_to_kill
 
     # self.voted_to_start
     def set_voted_to_start(self, _voted_to_start):
@@ -35,6 +47,9 @@ class Player:
 
     def get_room(self):
         return self.room
+
+    def random_room(self):
+        self.room = random.choice(ROOMS)
 
     # self.blocking
     def set_block(self, _blocking):

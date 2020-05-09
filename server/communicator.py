@@ -60,9 +60,27 @@ def dg_start_game(game):
 
 
 # Game
-def dg_change_time(game):
+def dg_goto_day(game):
     dg = PyDatagram()
-    dg.addUint8(CHANGE_TIME)
-    dg.addBool(game.day)
+    dg.addUint8(GOTO_DAY)
     dg.addUint8(game.day_count)
+    dg.addUint8(game.red_room)
+    return dg
+
+
+def dg_goto_night(game):
+    dg = PyDatagram()
+    dg.addUint8(GOTO_NIGHT)
+    return dg
+
+
+def dg_you_are_killer():
+    dg = PyDatagram()
+    dg.addUint8(YOU_ARE_KILLER)
+    return dg
+
+
+def dg_kill_failed_empty_room():
+    dg = PyDatagram()
+    dg.addUint8(KILL_FAILED_EMPTY_ROOM)
     return dg

@@ -181,20 +181,32 @@ class Client(ShowBase):
                         self.notify.warning("Received start game signal while in {}"
                                             .format(self.father.active_level.name))
 
+                elif msg_id == YOU_ARE_KILLER:
+                    self.father.killer = True
+
                 # Day/Night Cycle
-                elif msg_id == CHANGE_TIME:
-                    self.notify.debug("Received change_time")
+                elif msg_id == GOTO_DAY:
+                    self.notify.debug("Received GOTO_DAY")
                     if self.father.active_level.name != "Main Menu":
                         try:
-                            day = iterator.getBool()
                             day_count = iterator.getUint8()
                         except AssertionError:
-                            self.notify.warning("Invalid CHANGE_TIME")
+                            self.notify.warning("Invalid GOTO_DAY")
                             return Task.cont
 
-                        self.father.change_time(day, day_count)
+                        self.father.goto_day(day_count)
                     else:
-                        self.notify.warning("Received CHANGE_TIME while not in game")
+                        self.notify.warning("Received GOTO_DAY while not in game")
+
+                elif msg_id == GOTO_NIGHT:
+                    self.notify.debug("Received GOTO_NIGHT")
+                    if self.father.active_level.name != "Main Menu":
+                        self.father.goto_night()
+                    else:
+                        self.notify.warning("Received GOTO_NIGHT while not in game")
+
+                elif msg_id == KILL_FAILED_EMPTY_ROOM:
+                    self.notify.debug("Failed to kill! Empty room!")
 
                 # Error
                 else:

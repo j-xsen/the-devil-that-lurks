@@ -13,3 +13,8 @@ class AI(Player):
     def get_connection(self):
         self.notify.warning("Someone request AI's connection...")
         return False
+
+    # this is ran going into night
+    def night_run(self):
+        # select room
+        self.random_room()

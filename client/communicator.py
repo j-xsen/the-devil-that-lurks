@@ -48,3 +48,11 @@ def dg_set_room(pid, room):
     dg.addUint16(pid)
     dg.addUint8(room)
     return dg
+
+
+def dg_set_kill(pid, kill):
+    dg = PyDatagram()
+    dg.addUint8(SET_KILL)
+    dg.addUint16(pid)
+    dg.addBool(kill)
+    return dg
