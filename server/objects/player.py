@@ -1,5 +1,6 @@
 class Player:
-    def __init__(self, _connection, _pid, _ai=False):
+    def __init__(self, _local_id, _connection=None, _pid=None, _ai=False):
+        print(str(_local_id))
         self.voted_to_start = False
         self.room = None
         self.blocking = None
@@ -7,9 +8,13 @@ class Player:
         self.pid = _pid
         self.alive = True
         self.ai = _ai
+        self.local_id = _local_id
 
     def get_pid(self):
         return self.pid
+
+    def get_local_id(self):
+        return self.local_id
 
     def get_connection(self):
         return self.connection

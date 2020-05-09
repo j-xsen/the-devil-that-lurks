@@ -2,8 +2,6 @@ from direct.directnotify.DirectNotifyGlobal import directNotify
 from communicator import *
 from objects.player import Player
 from objects.ai import AI
-from direct.showbase.RandomNumGen import RandomNumGen
-import time
 from direct.task.TaskManagerGlobal import taskMgr, Task
 from codes import MAX_PLAYERS
 
@@ -36,7 +34,8 @@ class Game:
 
     def add_player(self, connection, pid):
         self.notify.debug("Adding player to game")
-        p = Player(connection, pid)
+
+        p = Player(self.generate_local_id(), _connection=connection, _pid=pid)
         self.players.append(p)
         for p in self.players:
             self.cWriter.send(dg_update_player_count(self.get_player_count()), p.get_connection())
@@ -106,7 +105,7 @@ class Game:
 
         # create AI
         while self.get_player_count() < MAX_PLAYERS:
-            new_ai = AI()
+            new_ai = AI(self.generate_local_id())
             self.players.append(new_ai)
 
         # tell players
@@ -114,6 +113,22 @@ class Game:
 
         # create task to change time of day
         taskMgr.doMethodLater(TIME, self.change_time, "DayNight Cycle {}".format(self.gid))
+
+    def generate_local_id(self):
+        local_id = len(self.players)
+
+        # if first player, don't do this
+        if len(self.players) != 0:
+            while self.get_player_from_local_id(local_id):
+                local_id += 1
+
+        return local_id
+
+    def get_player_from_local_id(self, local_id):
+        for p in self.players:
+            if p.get_local_id == local_id:
+                return p
+        return False
 
     def change_time(self, taskdata):
         self.notify.debug("Changing time")
