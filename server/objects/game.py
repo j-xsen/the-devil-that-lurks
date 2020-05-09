@@ -35,7 +35,7 @@ class Game:
     def add_player(self, connection, pid):
         self.notify.debug("Adding player to game")
 
-        p = Player(self.generate_local_id(), _connection=connection, _pid=pid)
+        p = Player(self.generate_local_id(), "jaxsen", _connection=connection, _pid=pid)
         self.players.append(p)
         self.message_all_players(dg_update_player_count(self.get_player_count()))
 
@@ -114,7 +114,7 @@ class Game:
             self.players.append(new_ai)
 
         # tell players
-        self.message_all_players(dg_start_game())
+        self.message_all_players(dg_start_game(self))
 
         # create task to change time of day
         taskMgr.doMethodLater(TIME, self.change_time, "DayNight Cycle {}".format(self.gid))

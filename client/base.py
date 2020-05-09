@@ -163,6 +163,19 @@ class Client(ShowBase):
                 # Received Start Game
                 elif msg_id == START_GAME:
                     if self.father.active_level.name == "Lobby":
+                        players = {}
+                        i = 0
+                        while i < MAX_PLAYERS:
+                            try:
+                                name = iterator.getString()
+                                local_id = iterator.getUint8()
+                                players[local_id] = {"name": name}
+                            except AssertionError:
+                                self.notify.warning("Invalid START_GAME")
+                                return Task.cont
+                            i += 1
+
+                        self.father.players = players
                         self.father.set_active_level("Day")
                     else:
                         self.notify.warning("Received start game signal while in {}"

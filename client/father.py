@@ -17,7 +17,7 @@ class Father:
         # Create stuff we don't want to keep recreating because of their permanence
         self.levels = []
         self.rooms = []
-        self.players = []
+        self.players = {}
         self.day = 0
         self.game = None
 
