@@ -79,43 +79,63 @@ class Server(ShowBase):
             dg = NetDatagram()
             if self.cReader.getData(dg):
                 iterator = PyDatagramIterator(dg)
-                msg_id = iterator.getUint8()
                 connection = dg.getConnection()
+
+                try:
+                    msg_id = iterator.getUint8()
+                except AssertionError:
+                    self.notify.warning("No message ID")
+                    return Task.cont
 
                 # Request a game
                 if msg_id == REQUEST_GAME:
-                    pid = iterator.getUint16()
-                    self.request_game(connection, pid)
+                    try:
+                        pid = iterator.getUint16()
+                        self.request_game(connection, pid)
+                    except AssertionError:
+                        self.notify.warning("Received invalid REQUEST_GAME")
 
                 # vote to start
                 elif msg_id == VOTE_TO_START:
-                    pid = iterator.getUint16()
-                    game = self.get_game_from_pid(pid)
-                    if game:
-                        game.vote_to_start(pid)
-                    else:
-                        self.notify.warning("No game for {}".format(pid))
+                    try:
+                        pid = iterator.getUint16()
+                        game = self.get_game_from_pid(pid)
+                        if game:
+                            game.vote_to_start(pid)
+                        else:
+                            self.notify.warning("No game for {}".format(pid))
+                    except AssertionError:
+                        self.notify.warning("Received invalid VOTE_TO_START")
 
                 # leave lobby
                 elif msg_id == LEAVE_LOBBY:
-                    pid = iterator.getUint16()
-                    self.remove_player_from_game(pid, LEFT_GAME)
+                    try:
+                        pid = iterator.getUint16()
+                        self.remove_player_from_game(pid, LEFT_GAME)
+                    except AssertionError:
+                        self.notify.warning("Received invalid LEAVE_LOBBY")
 
                 # set room
                 elif msg_id == SET_ROOM:
-                    pid = iterator.getUint16()
-                    room = iterator.getUint8()
-                    game = self.get_game_from_pid(pid)
-                    if game:
-                        # client has game, set their room status
-                        game.set_player_room(pid, room)
-                    else:
-                        self.notify.warning("{} attempted set room while not in a game".format(pid))
+                    try:
+                        pid = iterator.getUint16()
+                        room = iterator.getUint8()
+                        game = self.get_game_from_pid(pid)
+                        if game:
+                            # client has game, set their room status
+                            game.set_player_room(pid, room)
+                        else:
+                            self.notify.warning("{} attempted set room while not in a game".format(pid))
+                    except AssertionError:
+                        self.notify.warning("Received invalid SET_ROOM")
 
                 # send heartbeat
                 elif msg_id == HEARTBEAT:
-                    pid = iterator.getUint16()
-                    self.active_connections[pid]["heartbeat"] = True
+                    try:
+                        pid = iterator.getUint16()
+                        self.active_connections[pid]["heartbeat"] = True
+                    except AssertionError:
+                        self.notify.warning("Received invalid HEARTBEAT")
 
                 else:
                     self.notify.warning("Unknown datagram {}".format(msg_id))

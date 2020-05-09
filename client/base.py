@@ -79,12 +79,22 @@ class Client(ShowBase):
             dg = NetDatagram()
             if self.cReader.getData(dg):
                 iterator = PyDatagramIterator(dg)
-                msg_id = iterator.getUint8()
+
+                try:
+                    msg_id = iterator.getUint8()
+                except AssertionError:
+                    self.notify.warning("Invalid msg_id")
+                    return Task.cont
 
                 # Received PID
                 if msg_id == DELIVER_PID:
                     if not self.father.pid:
-                        pid = iterator.getUint16()
+                        try:
+                            pid = iterator.getUint16()
+                        except AssertionError:
+                            self.notify.warning("Invalid DELIVER_PID")
+                            return Task.cont
+
                         self.notify.debug("Received PID: {}".format(pid))
                         self.father.pid = pid
                     else:
@@ -92,11 +102,19 @@ class Client(ShowBase):
 
                 # Received Game
                 elif msg_id == DELIVER_GAME:
+                    # check if valid
+                    try:
+                        player_count = iterator.getUint8()
+                        vote_count = iterator.getUint8()
+                    except AssertionError:
+                        self.notify.warning("Invalid DELIVER_GAME")
+                        return Task.cont
+
                     # if father is on main menu, send them to lobby
                     if self.father.active_level.name == "Main Menu":
                         self.father.set_active_level("Lobby")
-                        self.father.active_level.update_player_count(iterator.getUint8())
-                        self.father.active_level.update_vote_count(iterator.getUint8())
+                        self.father.active_level.update_player_count(player_count)
+                        self.father.active_level.update_vote_count(vote_count)
                     else:
                         self.notify.warning("Received a game while in a game")
 
@@ -105,11 +123,15 @@ class Client(ShowBase):
                     self.notify.debug("Removed from game")
                     self.father.set_active_level("Main Menu")
 
-                    reason = iterator.getUint8()
+                    try:
+                        reason = iterator.getUint8()
+                    except AssertionError:
+                        self.notify.warning("Invalid KICKED_FROM_GAME")
+                        return Task.cont
 
                     # need we tell them that they hit leave game?
                     if reason != LEFT_GAME:
-                        Alert(iterator.getUint8())
+                        Alert(reason)
 
                 # Connection was killed
                 elif msg_id == KILLED_CONNECTION:
@@ -120,12 +142,24 @@ class Client(ShowBase):
                 # Received Player Count Update
                 elif msg_id == UPDATE_PLAYER_COUNT:
                     if self.father.active_level.name == "Lobby":
-                        self.father.active_level.update_player_count(iterator.getUint8())
+                        try:
+                            player_count = iterator.getUint8()
+                        except AssertionError:
+                            self.notify.warning("Invalid UPDATE_PLAYER_COUNT")
+                            return Task.cont
+
+                        self.father.active_level.update_player_count(player_count)
 
                 # Received Vote Count Update
                 elif msg_id == UPDATE_VOTE_COUNT:
                     if self.father.active_level.name == "Lobby":
-                        self.father.active_level.update_vote_count(iterator.getUint8())
+                        try:
+                            vote_count = iterator.getUint8()
+                        except AssertionError:
+                            self.notify.warning("Invalid UPDATE_VOTE_COUNT")
+                            return Task.cont
+
+                        self.father.active_level.update_vote_count(vote_count)
 
                 # Received Start Game
                 elif msg_id == START_GAME:
@@ -139,8 +173,13 @@ class Client(ShowBase):
                 elif msg_id == CHANGE_TIME:
                     self.notify.debug("Received change_time")
                     if self.father.active_level.name != "Main Menu":
-                        day = iterator.getBool()
-                        day_count = iterator.getUint8()
+                        try:
+                            day = iterator.getBool()
+                            day_count = iterator.getUint8()
+                        except AssertionError:
+                            self.notify.warning("Invalid CHANGE_TIME")
+                            return Task.cont
+
                         self.father.change_time(day, day_count)
                     else:
                         self.notify.warning("Received CHANGE_TIME while not in game")
