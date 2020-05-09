@@ -1,6 +1,7 @@
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import AntialiasAttrib, loadPrcFileData
 from direct.task.TaskManagerGlobal import taskMgr, Task
+from direct.directnotify.DirectNotifyGlobal import directNotify
 
 # networking
 from panda3d.core import QueuedConnectionManager
@@ -11,12 +12,12 @@ from panda3d.core import NetDatagram
 from direct.distributed.PyDatagramIterator import PyDatagramIterator
 
 from codes import *
-from direct.directnotify.DirectNotifyGlobal import directNotify
-
 from father import Father
+from objects.alert import Alert
 
 loadPrcFileData("", "\n".join(["notify-level-lp debug",
-                               "notify-level-father debug"]))
+                               "notify-level-father debug",
+                               "notify-level-gui-alert debug"]))
 
 
 class Client(ShowBase):
@@ -45,7 +46,7 @@ class Client(ShowBase):
         self.connect()
 
     def debug(self):
-        self.notify.info("Debug")
+        self.notify.debug("Debug")
         self.father.set_active_level("Main Menu")
 
     def connect(self):
@@ -96,6 +97,7 @@ class Client(ShowBase):
                 elif msg_id == KICKED_FROM_GAME:
                     self.notify.info("Removed from game")
                     self.father.set_active_level("Main Menu")
+                    Alert(iterator.getUint8())
 
                 # Received Player Count Update
                 elif msg_id == UPDATE_PLAYER_COUNT:

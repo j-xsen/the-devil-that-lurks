@@ -144,12 +144,16 @@ class Server(ShowBase):
         self.cWriter.send(dg_deliver_game(game), connection)
 
     def remove_player_from_game(self, pid, reason):
-        player_thing = self.active_connections[pid]
-        self.get_game_from_gid(player_thing["gid"]).remove_player(pid)
+        self.notify.debug("Removing {} from game".format(pid))
+        game = self.get_game_from_pid(pid)
+        if game:
+            self.get_game_from_pid(pid).remove_player(pid)
+        else:
+            self.notify.warning("No game for player {}".format(pid))
 
-        player_thing["game"] = None
+        self.active_connections[pid]["gid"] = None
 
-        self.cWriter.send(dg_kick_from_game(reason), player_thing["connection"])
+        self.cWriter.send(dg_kick_from_game(reason), self.active_connections[pid]["connection"])
 
     def get_game_from_gid(self, gid):
         if gid in self.games:
@@ -178,6 +182,13 @@ class Server(ShowBase):
 
     def delete_game(self, gid):
         self.notify.info("Delete game: {}".format(gid))
+
+        # remove gid from players
+        game = self.get_game_from_gid(gid)
+        for p in game.players:
+            if not p.ai:
+                self.active_connections[p.get_pid()]["gid"] = None
+
         del self.games[gid]
 
 

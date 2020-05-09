@@ -12,7 +12,7 @@ class Game:
     notify = directNotify.newCategory("game")
 
     def __init__(self, _gid, _cwriter, _on_delete, open_to_public=1):
-        self.notify.info("Creating game...")
+        self.notify.debug("Creating game...")
 
         self.cWriter = _cwriter
         self.gid = _gid
