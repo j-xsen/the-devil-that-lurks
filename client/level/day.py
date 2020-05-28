@@ -1,5 +1,6 @@
 from level.level import Level
 from direct.actor.Actor import Actor
+from panda3d.core import DirectionalLight, PerspectiveLens
 from direct.gui.DirectGui import DirectButton
 from direct.gui.OnscreenText import OnscreenText
 from communicator import dg_set_room
@@ -23,6 +24,22 @@ class DayLevel(Level):
                           [(3, 10, -1.5), 145]]
 
     def create(self):
+        # white light
+        dl_white = DirectionalLight('DL White')
+        dl_white.setColor((0.9 / 2.5, 0.9 / 2.5, 0.9 / 2.5, 1))
+        dl_white.setLens(PerspectiveLens())
+        dl_white_np = render.attachNewNode(dl_white)
+        dl_white_np.setPos(-10, 15, 10)
+        self.lights.append(dl_white_np)
+
+        # red light
+        dl_red = DirectionalLight('DL Red')
+        dl_red.setColor((0.682 / 1.5, 0.125 / 1.5, 0.121 / 1.5, 1))
+        dl_red.setLens(PerspectiveLens())
+        dl_red_np = render.attachNewNode(dl_red)
+        dl_red_np.setPos(10, 15, 10)
+        self.lights.append(dl_red_np)
+
         for p in self.father.players:
             # pawns
             pawn_red = Actor("models/egg/pawn",
@@ -35,6 +52,12 @@ class DayLevel(Level):
             pawn_red.setScale(0.75, 0.75, 0.75)
             pawn_red.loop('breath')
             pawn_red.reparentTo(render)
+
+            if p in self.father.dead:
+                print(self.father.dead)
+                pawn_red.setLight(dl_red_np)
+            else:
+                pawn_red.setLight(dl_white_np)
 
             self.actors.append(pawn_red)
 

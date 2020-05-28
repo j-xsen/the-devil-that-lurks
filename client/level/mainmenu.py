@@ -107,9 +107,6 @@ class MainMenuLevel(Level):
         self.images.append(play_image)
 
     def create(self):
-        self.lights = []
-        self.actors = []
-
         # red pawn
         pawn_red = Actor("models/egg/pawn",
                          {"breath": "models/egg/pawn-breath"})

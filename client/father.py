@@ -18,6 +18,7 @@ class Father:
         self.levels = []
         self.rooms = []
         self.players = {}
+        self.dead = []
         self.day = 1
         self.game = None
         self.killer = False

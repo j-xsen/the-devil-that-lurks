@@ -42,21 +42,15 @@ class Game:
         self.message_all_players(dg_update_player_count(self.get_player_count()))
 
     def remove_player(self, pid):
-        self.notify.debug("Removing player {} from game {}".format(pid, self.gid))
-        self.players.remove(self.get_player_from_pid(pid))
-
-        # check if any real players left
-        if not self.any_real_players():
-            self.delete_this_game()
-
-        # tell all players new player count
-        self.message_all_players(dg_update_player_count(self.get_player_count()))
-
-        if not self.started:
-            self.message_all_players(dg_update_vote_count(self.get_vote_count()))
+        self.remove_player_from_local_id(self.get_local_id_from_pid(pid))
 
     def remove_player_from_local_id(self, local_id):
         self.notify.debug("Removing player {} from game {}".format(local_id, self.gid))
+
+        # needs to be done before they're removed bc we use their data
+        if self.started:
+            self.message_all_players(dg_has_died(local_id))
+
         self.players.remove(self.get_player_from_local_id(local_id))
 
         if not self.any_real_players():
@@ -65,16 +59,6 @@ class Game:
         if not self.started:
             self.message_all_players(dg_update_player_count(self.get_player_count()))
             self.message_all_players(dg_update_vote_count(self.get_vote_count()))
-        else:
-            # TODO
-            #   tell players to mark left as dead
-            self.notify.debug("Removed player from game")
-
-    def get_player_from_pid(self, pid):
-        for p in self.players:
-            if p.get_pid() == pid:
-                return p
-        return False
 
     def get_gid(self):
         return self.gid
@@ -155,7 +139,8 @@ class Game:
 
     def set_kill_choice(self, pid, choice):
         if self.killer == self.get_local_id_from_pid(pid):
-            self.get_player_from_pid(pid).set_wants_to_kill(choice)
+            player = self.get_player_from_pid(pid)
+            player.wants_to_kill = choice
         else:
             self.notify.warning("player {} tried to set kill, but they're not the killer".format(pid))
 
@@ -182,6 +167,12 @@ class Game:
                 return p.get_pid()
             else:
                 self.notify.debug("{} does not match {}".format(p.get_local_id(), local_id))
+        return False
+
+    def get_player_from_pid(self, pid):
+        for p in self.players:
+            if p.get_pid() == pid:
+                return p
         return False
 
     def get_local_id_from_pid(self, pid):

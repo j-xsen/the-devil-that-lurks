@@ -176,6 +176,7 @@ class Client(ShowBase):
                             i += 1
 
                         self.father.players = players
+                        self.father.day = 0
                         self.father.set_active_level("Day")
                     else:
                         self.notify.warning("Received start game signal while in {}"
@@ -183,6 +184,17 @@ class Client(ShowBase):
 
                 elif msg_id == YOU_ARE_KILLER:
                     self.father.killer = True
+
+                elif msg_id == HAS_DIED:
+                    self.notify.debug("Received HAS_DIED")
+                    try:
+                        the_dead = iterator.getUint8()
+                    except AssertionError:
+                        self.notify.warning("Invalid HAS_DIED")
+                        return Task.cont
+
+                    self.notify.debug("{} is dead".format(the_dead))
+                    self.father.dead.append(the_dead)
 
                 # Day/Night Cycle
                 elif msg_id == GOTO_DAY:

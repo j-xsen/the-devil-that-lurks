@@ -74,6 +74,13 @@ def dg_goto_night(game):
     return dg
 
 
+def dg_has_died(local_id):
+    dg = PyDatagram()
+    dg.addUint8(HAS_DIED)
+    dg.addUint8(local_id)
+    return dg
+
+
 def dg_you_are_killer():
     dg = PyDatagram()
     dg.addUint8(YOU_ARE_KILLER)
