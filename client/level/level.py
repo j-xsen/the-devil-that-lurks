@@ -6,7 +6,8 @@ from panda3d.core import Filename
 class Level:
     def __init__(self, name, father):
         self.vfs = VirtualFileSystem.getGlobalPtr()
-        self.vfs.mount(Filename("all.mf"), ".", VirtualFileSystem.MFReadOnly)
+        self.vfs.mount(Filename("images.mf"), ".", VirtualFileSystem.MFReadOnly)
+        self.vfs.mount(Filename("models.mf"), ".", VirtualFileSystem.MFReadOnly)
         self.name = name
         self.father = father
         self.actors = []
