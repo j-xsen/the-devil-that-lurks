@@ -91,3 +91,10 @@ def dg_kill_failed_empty_room():
     dg = PyDatagram()
     dg.addUint8(KILL_FAILED_EMPTY_ROOM)
     return dg
+
+
+def dg_how_many_in_room(num):
+    dg = PyDatagram()
+    dg.addUint8(NUM_IN_ROOM)
+    dg.addUint8(num)
+    return dg

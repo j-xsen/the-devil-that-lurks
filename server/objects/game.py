@@ -103,11 +103,15 @@ class Game:
             self.notify.warning("{} tried to set room during night".format(pid))
 
     # returns array of local_ids of NOT the killers
-    def get_players_in_room(self, room):
+    def get_players_in_room(self, room, include_killer):
         in_room = []
         for p in self.players:
-            if p.get_room() == room and p.get_local_id() != self.killer:
-                in_room.append(p.get_local_id())
+            if include_killer:
+                if p.get_room() == room:
+                    in_room.append(p.get_local_id())
+            else:
+                if p.get_room() == room and p.get_local_id() != self.killer:
+                    in_room.append(p.get_local_id())
         return in_room
 
     def start_game(self):
@@ -202,6 +206,10 @@ class Game:
                     if not p.get_room():
                         p.random_room()
 
+                # send them the amount of people in their room
+                self.message_player(dg_how_many_in_room(len(self.get_players_in_room(p.get_room(), True))),
+                                    p.get_local_id())
+
         # kill player if going into day
         if self.day:
             # check if killer wants to kill
@@ -210,7 +218,7 @@ class Game:
                 # get red_room
                 self.red_room = killer.get_room()
                 # get all players in that room
-                possible_victims = self.get_players_in_room(self.red_room)
+                possible_victims = self.get_players_in_room(self.red_room, False)
                 if len(possible_victims) > 0:
                     # select random
                     victim = random.choice(possible_victims)

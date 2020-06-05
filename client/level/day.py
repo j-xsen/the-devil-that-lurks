@@ -54,7 +54,6 @@ class DayLevel(Level):
             pawn_red.reparentTo(render)
 
             if p in self.father.dead:
-                print(self.father.dead)
                 pawn_red.setLight(dl_red_np)
             else:
                 pawn_red.setLight(dl_white_np)

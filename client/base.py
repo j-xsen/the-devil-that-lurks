@@ -17,6 +17,8 @@ from father import Father
 from communicator import dg_send_heartbeat, dg_goodbye
 from objects.alert import Alert
 
+from client.codes import NUM_IN_ROOM
+
 loadPrcFileData("", "\n".join(["notify-level-lp debug",
                                "notify-level-father debug",
                                "notify-level-gui-alert debug"]))
@@ -219,6 +221,15 @@ class Client(ShowBase):
 
                 elif msg_id == KILL_FAILED_EMPTY_ROOM:
                     self.notify.debug("Failed to kill! Empty room!")
+
+                elif msg_id == NUM_IN_ROOM:
+                    self.notify.debug("Received NUM_IN_ROOM")
+                    try:
+                        num = iterator.getUint8()
+                        self.father.level_night.set_players_here(num)
+                    except AssertionError:
+                        self.notify.warning("Invalid NUM_IN_ROOM")
+                        return Task.cont
 
                 # Error
                 else:
