@@ -1,4 +1,4 @@
-![logo](https://raw.githubusercontent.com/jaxsenh/the-devil-that-lurks/master/client/img/png/logo.png "logo")
+![logo](https://i.imgur.com/DKvU4Yb.png "logo")
 
 Hello! First of all, thank you for checking out my game! Before downloading, please note that this is early in development. Not all gameplay features have been implemented nor any visual appeal, though that'll probably be beyond obvious beyond launch. If you find any issues that are like in need of immediate fixing, or you just wanna chat, you can email me at [jaxsenhoneycutt@gmail.com](mailto:jaxsenhoneycutt@gmail.com "jaxsenhoneycutt@gmail.com")
 
