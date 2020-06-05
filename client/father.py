@@ -4,6 +4,9 @@ from level.lobby import LobbyLevel
 from level.night import NightLevel
 from direct.directnotify.DirectNotifyGlobal import directNotify
 from communicator import dg_goodbye
+from panda3d.core import VirtualFileSystem
+from panda3d.core import Multifile
+from panda3d.core import Filename
 import sys
 import atexit
 
@@ -22,6 +25,10 @@ class Father:
         self.day = 1
         self.game = None
         self.killer = False
+        self.vfs = VirtualFileSystem.getGlobalPtr()
+
+        # this is used in nearly every level, just keep it loaded
+        self.vfs.mount(Filename("pawns.mf"), ".", VirtualFileSystem.MFReadOnly)
 
         # Levels
         self.level_main_menu = MainMenuLevel(self)

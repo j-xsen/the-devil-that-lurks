@@ -4,15 +4,13 @@ from panda3d.core import Filename
 
 
 class Level:
-    def __init__(self, name, father):
-        self.vfs = VirtualFileSystem.getGlobalPtr()
-        self.vfs.mount(Filename("images.mf"), ".", VirtualFileSystem.MFReadOnly)
-        self.vfs.mount(Filename("models.mf"), ".", VirtualFileSystem.MFReadOnly)
+    def __init__(self, name, multifiles, father):
+        self.multifiles = multifiles
         self.name = name
         self.father = father
         self.actors = []
         self.lights = []
-        self.sprites = loader.loadModel("img/egg/mainmenu.egg")
+        self.sprites = None
         self.buttons = []
         self.images = []
         self.text_nodepaths = []
@@ -20,9 +18,8 @@ class Level:
         self.timer = None
 
     def create(self):
-        # create actors
-        # create models
-        # create uis
+        for f in self.multifiles:
+            self.father.vfs.mount(Filename(f), ".", VirtualFileSystem.MFReadOnly)
         return
 
     def destroy(self):
@@ -57,6 +54,9 @@ class Level:
         if self.timer:
             self.timer.annihilate()
             self.timer = None
+
+        for f in self.multifiles:
+            self.father.vfs.unmount(f)
 
         return
 

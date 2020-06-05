@@ -11,8 +11,11 @@ from panda3d.core import TextNode
 
 # Level that all come together during day
 class DayLevel(Level):
+
+    multifiles = []
+
     def __init__(self, father):
-        Level.__init__(self, "Day", father)
+        Level.__init__(self, "Day", self.multifiles, father)
         self.positions = [[(-3, 10, -1.5), -145],
                           [(-3, 15, -1.5), -145],
                           [(-3, 20, -1.5), -145],
@@ -24,6 +27,7 @@ class DayLevel(Level):
                           [(3, 10, -1.5), 145]]
 
     def create(self):
+        Level.create(self)
         # white light
         dl_white = DirectionalLight('DL White')
         dl_white.setColor((0.9 / 2.5, 0.9 / 2.5, 0.9 / 2.5, 1))
@@ -42,8 +46,8 @@ class DayLevel(Level):
 
         for p in self.father.players:
             # pawns
-            pawn_red = Actor("models/egg/pawn",
-                             {"breath": "models/egg/pawn-breath"})
+            pawn_red = Actor("pawns/pawn",
+                             {"breath": "pawns/pawn-breath"})
 
             pos = self.positions[list(self.father.players).index(p)]
 
