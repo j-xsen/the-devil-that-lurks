@@ -17,7 +17,7 @@ from father import Father
 from communicator import dg_send_heartbeat, dg_goodbye
 from objects.alert import Alert
 
-from client.codes import NUM_IN_ROOM
+from codes import NUM_IN_ROOM
 
 loadPrcFileData("", "\n".join(["notify-level-lp debug",
                                "notify-level-father debug",
