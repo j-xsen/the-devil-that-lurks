@@ -8,7 +8,7 @@ from communicator import dg_vote_to_start, dg_leave_lobby
 
 class LobbyLevel(Level):
     def __init__(self, father):
-        Level.__init__(self, "Lobby", "img/egg/mainmenu.egg", father)
+        Level.__init__(self, "Lobby", father)
         self.votes = 0
         self.players_count = 0
 

@@ -8,7 +8,7 @@ from communicator import dg_set_kill
 # Level that all come together during day
 class NightLevel(Level):
     def __init__(self, father):
-        Level.__init__(self, "Night", "img/egg/mainmenu.egg", father)
+        Level.__init__(self, "Night", father)
         self.players_here = 0
 
     def create(self):

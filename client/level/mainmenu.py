@@ -5,13 +5,16 @@ from level.level import Level
 from panda3d.core import DirectionalLight, PerspectiveLens, Point3, TransparencyAttrib
 from direct.gui.DirectGui import OnscreenImage, DirectButton, DGG
 from direct.interval.IntervalGlobal import LerpPosHprInterval
+from panda3d.core import VirtualFileSystem
+from panda3d.core import Multifile
+from panda3d.core import Filename
 
 from communicator import dg_request_game
 
 
 class MainMenuLevel(Level):
     def __init__(self, father):
-        Level.__init__(self, "Main Menu", "img/egg/mainmenu.egg", father)
+        Level.__init__(self, "Main Menu", father)
 
     # for transitions between screens on this level
     # just destroy self.images and self.buttons
@@ -26,7 +29,7 @@ class MainMenuLevel(Level):
 
         LerpPosHprInterval(base.camera, 0.35, Point3(0, 0, 0), Point3(0, 0, 0)).start()
 
-        logo = OnscreenImage(image='img/png/logo.png', pos=(0, 0, 0.625), scale=(1, 1, 0.4))
+        logo = OnscreenImage(image=loader.loadTexture('img/png/logo.png'), pos=(0, 0, 0.625), scale=(1, 1, 0.4))
         logo.setTransparency(TransparencyAttrib.MAlpha)
 
         exit_button = DirectButton(geom=(self.sprites.find('**/mm-exit-ready'),

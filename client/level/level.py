@@ -1,10 +1,17 @@
+from panda3d.core import VirtualFileSystem
+from panda3d.core import Multifile
+from panda3d.core import Filename
+
+
 class Level:
-    def __init__(self, name, sprite_dest, father):
+    def __init__(self, name, father):
+        self.vfs = VirtualFileSystem.getGlobalPtr()
+        self.vfs.mount(Filename("all.mf"), ".", VirtualFileSystem.MFReadOnly)
         self.name = name
         self.father = father
         self.actors = []
         self.lights = []
-        self.sprites = loader.loadModel(sprite_dest)
+        self.sprites = loader.loadModel("img/egg/mainmenu.egg")
         self.buttons = []
         self.images = []
         self.text_nodepaths = []

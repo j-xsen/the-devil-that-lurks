@@ -12,7 +12,7 @@ from panda3d.core import TextNode
 # Level that all come together during day
 class DayLevel(Level):
     def __init__(self, father):
-        Level.__init__(self, "Day", "img/egg/mainmenu.egg", father)
+        Level.__init__(self, "Day", father)
         self.positions = [[(-3, 10, -1.5), -145],
                           [(-3, 15, -1.5), -145],
                           [(-3, 20, -1.5), -145],
