@@ -15,6 +15,7 @@ from direct.distributed.PyDatagramIterator import PyDatagramIterator
 
 from communicator import *
 from objects.game import Game
+from config import *
 
 # no window
 loadPrcFileData("", "\n".join(["notify-level-server debug",
@@ -43,7 +44,7 @@ class Server(ShowBase):
         self.games = {}
 
         # connect
-        port_address = 9099
+        port_address = SERVER_PORT
         backlog = 1000
         tcpSocket = self.cManager.openTCPServerRendezvous(port_address, backlog)
         self.cListener.addConnection(tcpSocket)

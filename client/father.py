@@ -76,6 +76,9 @@ class Father:
         self.set_active_level("Night")
 
     def exit_game(self):
+        if not self.my_connection:
+            sys.exit()
+
         # tell server
         self.write(dg_goodbye(self.pid))
         self.cManager.closeConnection(self.my_connection)

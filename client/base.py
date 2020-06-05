@@ -18,6 +18,7 @@ from communicator import dg_send_heartbeat, dg_goodbye
 from objects.alert import Alert
 
 from codes import NUM_IN_ROOM
+from config import *
 
 loadPrcFileData("", "\n".join(["notify-level-lp debug",
                                "notify-level-father debug",
@@ -54,8 +55,8 @@ class Client(ShowBase):
         self.father.set_active_level("Main Menu")
 
     def connect(self):
-        port_address = 9099
-        ip_address = "localhost"
+        port_address = SERVER_PORT
+        ip_address = SERVER_IP
         timeout = 3000
 
         my_connection = self.cManager.openTCPClientConnection(ip_address,
