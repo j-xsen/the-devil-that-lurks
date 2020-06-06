@@ -1,6 +1,5 @@
 from direct.gui.DirectGui import OkDialog
-
-from localization import LOCAL_ENGLISH
+from localization.en import LOCAL_EN
 from communications.codes import GENERAL
 
 # TODO
@@ -11,10 +10,10 @@ from communications.codes import GENERAL
 
 class Alert:
     def __init__(self, reason):
-        if reason in LOCAL_ENGLISH:
-            self.dialog = OkDialog(dialogName="OkDialog", text=LOCAL_ENGLISH[reason], command=self.destroy)
+        if reason in LOCAL_EN:
+            self.dialog = OkDialog(dialogName="OkDialog", text=LOCAL_EN[reason], command=self.destroy)
         else:
-            self.dialog = OkDialog(dialogName="OkDialog", text=LOCAL_ENGLISH[GENERAL], command=self.destroy)
+            self.dialog = OkDialog(dialogName="OkDialog", text=LOCAL_EN[GENERAL], command=self.destroy)
 
     def destroy(self, arg):
         self.dialog.cleanup()

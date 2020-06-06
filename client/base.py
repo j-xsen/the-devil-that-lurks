@@ -1,6 +1,6 @@
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import AntialiasAttrib, loadPrcFileData
-from direct.task.TaskManagerGlobal import taskMgr, Task
+from direct.task.TaskManagerGlobal import taskMgr
 from direct.directnotify.DirectNotifyGlobal import directNotify
 
 # networking
