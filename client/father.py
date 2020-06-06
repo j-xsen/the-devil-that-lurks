@@ -3,9 +3,8 @@ from level.day import DayLevel
 from level.lobby import LobbyLevel
 from level.night import NightLevel
 from direct.directnotify.DirectNotifyGlobal import directNotify
-from communicator import dg_goodbye
+from communications.communicator import dg_goodbye
 from panda3d.core import VirtualFileSystem
-from panda3d.core import Multifile
 from panda3d.core import Filename
 import sys
 import atexit
@@ -13,7 +12,7 @@ import atexit
 
 # The Father object holds all UIs and Levels
 class Father:
-    def __init__(self, _cWriter, _cManager):
+    def __init__(self, _cWriter, _cManager, _cReader):
         # notify
         self.notify = directNotify.newCategory("father")
 
@@ -28,7 +27,7 @@ class Father:
         self.vfs = VirtualFileSystem.getGlobalPtr()
 
         # this is used in nearly every level, just keep it loaded
-        self.vfs.mount(Filename("pawns.mf"), ".", VirtualFileSystem.MFReadOnly)
+        self.vfs.mount(Filename("mf/pawns.mf"), ".", VirtualFileSystem.MFReadOnly)
 
         # Levels
         self.level_main_menu = MainMenuLevel(self)
@@ -50,6 +49,7 @@ class Father:
         self.my_connection = None
         self.cWriter = _cWriter
         self.cManager = _cManager
+        self.cReader = _cReader
         self.pid = None
 
         atexit.register(self.exit_game)

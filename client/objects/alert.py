@@ -1,9 +1,7 @@
-from direct.directnotify.DirectNotifyGlobal import directNotify
-from direct.gui.DirectGui import DirectFrame
 from direct.gui.DirectGui import OkDialog
 
 from localization import LOCAL_ENGLISH
-from codes import GENERAL
+from communications.codes import GENERAL
 
 # TODO
 #   Create a box

@@ -1,6 +1,6 @@
 # creates datagrams to send to server
 from direct.distributed.PyDatagram import PyDatagram
-from codes import *
+from communications.codes import *
 
 
 # GENERAL

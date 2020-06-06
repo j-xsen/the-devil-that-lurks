@@ -2,7 +2,7 @@ from level.level import Level
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.DirectGui import DirectCheckButton
 from objects.timer import Timer
-from communicator import dg_set_kill
+from communications.communicator import dg_set_kill
 
 
 # Level that all come together during day

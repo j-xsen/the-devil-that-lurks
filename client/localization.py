@@ -1,5 +1,5 @@
 # error codes
-from codes import GAME_DELETED, ALREADY_IN_GAME, GENERAL, LEFT_GAME
+from communications.codes import GAME_DELETED, ALREADY_IN_GAME, GENERAL, LEFT_GAME
 
 LOCAL_ENGLISH = {
     GAME_DELETED: 'This game has ended!',

@@ -19,7 +19,7 @@ class Level:
 
     def create(self):
         for f in self.multifiles:
-            self.father.vfs.mount(Filename(f), ".", VirtualFileSystem.MFReadOnly)
+            self.father.vfs.mount(Filename("mf/{}".format(f)), ".", VirtualFileSystem.MFReadOnly)
         return
 
     def destroy(self):

@@ -1,6 +1,6 @@
 from direct.gui.OnscreenText import OnscreenText
 from direct.task.TaskManagerGlobal import taskMgr, Task
-from codes import TIME
+from communications.codes import TIME
 
 
 class Timer(OnscreenText):

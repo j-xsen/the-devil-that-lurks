@@ -3,8 +3,8 @@ from direct.actor.Actor import Actor
 from panda3d.core import DirectionalLight, PerspectiveLens
 from direct.gui.DirectGui import DirectButton
 from direct.gui.OnscreenText import OnscreenText
-from communicator import dg_set_room
-from codes import KITCHEN, LIVING_ROOM, BEDROOM, PORCH, DINING_ROOM
+from communications.communicator import dg_set_room
+from communications.codes import KITCHEN, LIVING_ROOM, BEDROOM, PORCH, DINING_ROOM
 from objects.timer import Timer
 from panda3d.core import TextNode
 

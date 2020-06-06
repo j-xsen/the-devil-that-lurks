@@ -1,15 +1,10 @@
-import sys
-
 from direct.actor.Actor import Actor
 from level.level import Level
 from panda3d.core import DirectionalLight, PerspectiveLens, Point3, TransparencyAttrib
 from direct.gui.DirectGui import OnscreenImage, DirectButton, DGG
 from direct.interval.IntervalGlobal import LerpPosHprInterval
-from panda3d.core import VirtualFileSystem
-from panda3d.core import Multifile
-from panda3d.core import Filename
 
-from communicator import dg_request_game
+from communications.communicator import dg_request_game
 
 class MainMenuLevel(Level):
 

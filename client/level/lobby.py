@@ -3,7 +3,7 @@ from level.level import Level
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.DirectGui import DirectButton
 
-from communicator import dg_vote_to_start, dg_leave_lobby
+from communications.communicator import dg_vote_to_start, dg_leave_lobby
 
 
 class LobbyLevel(Level):
