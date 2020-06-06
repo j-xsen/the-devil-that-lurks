@@ -58,7 +58,7 @@ class MainMenuLevel(Level):
 
         LerpPosHprInterval(base.camera, 0.35, Point3(1, 12, 0), Point3(-7, 0, 0)).start()
 
-        settings_image = OnscreenImage(image='img/png/mm-settings-ready.png', pos=(0, 0, 0.7), scale=(0.5, 1, 0.2))
+        settings_image = OnscreenImage(image='mainmenu/mm-settings-ready.png', pos=(0, 0, 0.7), scale=(0.5, 1, 0.2))
         settings_image.setTransparency(TransparencyAttrib.MAlpha)
 
         back_button = DirectButton(geom=(self.sprites.find('**/mm-back-ready'),
@@ -78,7 +78,7 @@ class MainMenuLevel(Level):
         self.soft_destroy()
         LerpPosHprInterval(base.camera, 0.35, Point3(-1, 12, 0), Point3(7, 0, 0)).start()
 
-        play_image = OnscreenImage(image='img/png/mm-play-ready.png', pos=(0, 0, 0.7), scale=(0.5, 1, 0.2))
+        play_image = OnscreenImage(image='mainmenu/mm-play-ready.png', pos=(0, 0, 0.7), scale=(0.5, 1, 0.2))
         play_image.setTransparency(TransparencyAttrib.MAlpha)
 
         singleplayer_button = DirectButton(geom=(self.sprites.find('**/mm-singleplayer-ready'),
