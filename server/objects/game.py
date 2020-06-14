@@ -1,5 +1,5 @@
 from direct.directnotify.DirectNotifyGlobal import directNotify
-from communicator import *
+from datagrams import *
 from objects.player import Player
 from objects.ai import AI
 from direct.task.TaskManagerGlobal import taskMgr, Task
@@ -37,9 +37,15 @@ class Game:
     def add_player(self, connection, pid):
         self.notify.debug("Adding player to game")
 
-        p = Player(self.generate_local_id(), "jaxsen", _connection=connection, _pid=pid)
+        p = Player(self.generate_local_id(), _connection=connection, _pid=pid)
         self.players.append(p)
-        self.message_all_players(dg_update_player_count(self.get_player_count()))
+        self.message_all_players(dg_add_player(p.get_local_id()))
+
+        # send all players to the new player
+        for existing in self.players:
+            if existing != p:
+                self.message_player(dg_update_player_name(existing.get_local_id(), existing.get_name()),
+                                    p.get_local_id())
 
     def remove_player(self, pid):
         self.remove_player_from_local_id(self.get_local_id_from_pid(pid))
@@ -50,6 +56,8 @@ class Game:
         # needs to be done before they're removed bc we use their data
         if self.started:
             self.message_all_players(dg_has_died(local_id))
+        else:
+            self.message_all_players(dg_remove_player(local_id))
 
         self.players.remove(self.get_player_from_local_id(local_id))
 
@@ -57,8 +65,15 @@ class Game:
             self.delete_this_game()
 
         if not self.started:
-            self.message_all_players(dg_update_player_count(self.get_player_count()))
-            self.message_all_players(dg_update_vote_count(self.get_vote_count()))
+            self.verify_vote_to_start()
+
+    def set_name(self, pid, name):
+        # TODO validate name
+        self.notify.debug("changing name to {}".format(name))
+        self.get_player_from_pid(pid).set_name(name)
+
+        # tell players
+        self.message_all_players(dg_update_player_name(self.get_local_id_from_pid(pid), name))
 
     def get_gid(self):
         return self.gid
@@ -69,18 +84,27 @@ class Game:
             if p:
                 p.set_voted_to_start(True)
 
-                vote_count = self.get_vote_count()
-                player_count = self.get_player_count()
-
-                if vote_count / player_count >= 0.75:
-                    self.notify.debug("Vote start passed! Start game")
-                    self.start_game()
-                else:
-                    self.message_all_players(dg_update_vote_count(vote_count))
+                self.verify_vote_to_start()
             else:
                 self.notify.warning("No player w/ that pid")
         else:
             self.notify.warning("Vote to start from {} after game's already started".format(pid))
+
+    def verify_vote_to_start(self):
+        """
+        Called to verify if the game should start. Should be called when players leave lobbys or cast
+        their vote.
+        :return: if the vote passes
+        :rtype: bool
+        """
+        vote_count = self.get_vote_count()
+        player_count = self.get_player_count()
+
+        if vote_count / player_count >= 0.75:
+            self.notify.debug("Vote start passed! Start game!")
+            self.start_game()
+        else:
+            self.message_all_players(dg_update_vote_count(vote_count))
 
     def get_player_count(self):
         return len(self.players)
@@ -121,6 +145,11 @@ class Game:
         self.started = True
         self.day_count = 1
 
+        # fix people who haven't updated their name
+        for p in self.players:
+            if p.get_name() == "???":
+                p.set_random_name()
+
         # create AI
         while self.get_player_count() < MAX_PLAYERS:
             new_ai = AI(self.generate_local_id())
@@ -149,16 +178,35 @@ class Game:
             self.notify.warning("player {} tried to set kill, but they're not the killer".format(pid))
 
     def generate_local_id(self):
-        local_id = len(self.players)
-
-        # if first player, don't do this
-        if len(self.players) != 0:
-            while self.get_player_from_local_id(local_id):
-                local_id += 1
+        local_id = 0
+        while local_id in self.get_local_id_pool():
+            local_id += 1
+            if local_id >= 255:
+                # i'd hope it'd never get it but just in case i guess
+                self.notify.error("Too high!")
+                break
 
         return local_id
 
+    def get_local_id_pool(self):
+        """
+        get every currently taken local_id
+        :return: list of local_ids
+        :rtype: list
+        """
+        local_ids = []
+        for p in self.players:
+            local_ids.append(p.get_local_id())
+        return local_ids
+
     def get_player_from_local_id(self, local_id):
+        """
+        get the player object from local_id
+        :param local_id: the player's local_id
+        :type local_id: int
+        :return: player object or False, if lookup failed
+        :rtype: Player
+        """
         for p in self.players:
             if p.get_local_id() == local_id:
                 return p

@@ -3,7 +3,7 @@ from direct.actor.Actor import Actor
 from panda3d.core import DirectionalLight, PerspectiveLens
 from direct.gui.DirectGui import DirectButton
 from direct.gui.OnscreenText import OnscreenText
-from communications.communicator import dg_set_room
+from communications.datagrams import dg_set_room
 from communications.codes import KITCHEN, LIVING_ROOM, BEDROOM, PORCH, DINING_ROOM
 from objects.timer import Timer
 from panda3d.core import TextNode
@@ -46,8 +46,7 @@ class DayLevel(Level):
 
         for p in self.father.players:
             # pawns
-            pawn_red = Actor("pawns/pawn",
-                             {"breath": "pawns/pawn-breath"})
+            pawn_red = Actor("pawns/pawn.bam")
 
             pos = self.positions[list(self.father.players).index(p)]
 
@@ -88,11 +87,11 @@ class DayLevel(Level):
         btn_dining_room = DirectButton(text="Dining room", scale=0.1, pos=(0, 0, -0.5),
                                        command=self.set_room, extraArgs=[DINING_ROOM])
 
-        self.buttons.append(btn_kitchen)
-        self.buttons.append(btn_living_room)
-        self.buttons.append(btn_bedroom)
-        self.buttons.append(btn_porch)
-        self.buttons.append(btn_dining_room)
+        self.gui.append(btn_kitchen)
+        self.gui.append(btn_living_room)
+        self.gui.append(btn_bedroom)
+        self.gui.append(btn_porch)
+        self.gui.append(btn_dining_room)
 
         # day count
         txt_day = OnscreenText(text="Day: {}".format(self.father.day), pos=(0.75, 0.75), scale=0.2, fg=(1, 1, 1, 1))

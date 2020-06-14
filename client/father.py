@@ -3,7 +3,7 @@ from level.day import DayLevel
 from level.lobby import LobbyLevel
 from level.night import NightLevel
 from direct.directnotify.DirectNotifyGlobal import directNotify
-from communications.communicator import dg_goodbye
+from communications.datagrams import dg_goodbye
 from panda3d.core import VirtualFileSystem
 from panda3d.core import Filename
 import sys
@@ -66,6 +66,40 @@ class Father:
 
         self.active_level.create()
 
+    def add_player(self, local_id):
+        """
+        Adds a player to the self.players dict
+        @param local_id: the local id of the new player
+        @type local_id: int
+        """
+        self.players[local_id] = {"name": "???"}
+
+        if self.active_level.name == "Lobby":
+            self.level_lobby.update_player()
+            print("Added player {}".format(local_id))
+
+    def remove_player(self, local_id):
+        """
+        Removes a player from the self.players dict
+        @param local_id: the local id of the ex-player
+        @type local_id: int
+        """
+        if self.active_level.name == "Lobby":
+            self.players.pop(local_id)
+            self.level_lobby.update_player()
+
+    def update_name(self, local_id, new_name):
+        """
+        Called when a player's name is changed
+        @param local_id: The local ID of the player who's name is changing
+        @type local_id: int
+        @param new_name: The player's new name
+        @type new_name: string
+        """
+        if self.active_level.name == "Lobby":
+            self.players[local_id] = {"name": new_name}
+            self.level_lobby.update_player()
+
     def goto_day(self, day_count):
         self.notify.debug("Setting time to day")
         self.day = day_count
@@ -84,9 +118,16 @@ class Father:
         self.cManager.closeConnection(self.my_connection)
         sys.exit()
 
-    # use this to send messages to server
     def write(self, dg):
+        """
+        Sends message to server
+        @param dg: datagram you want to send
+        @type dg: direct.distributed.PyDatagram.PyDatagram
+        @return: if message sends
+        @rtype: bool
+        """
         if self.my_connection:
-            self.cWriter.send(dg, self.my_connection)
+            return self.cWriter.send(dg, self.my_connection)
         else:
             self.notify.error("No connection to send message to!")
+        return False

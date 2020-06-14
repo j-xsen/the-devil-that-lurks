@@ -13,7 +13,7 @@ from panda3d.core import ConnectionWriter
 from panda3d.core import PointerToConnection, NetAddress, NetDatagram
 from direct.distributed.PyDatagramIterator import PyDatagramIterator
 
-from communicator import *
+from datagrams import *
 from objects.game import Game
 from config import *
 
@@ -160,6 +160,16 @@ class Server(ShowBase):
                     except AssertionError:
                         self.notify.warning("Received invalid GOODBYE")
 
+                elif msg_id == UPDATE_NAME:
+                    try:
+                        pid = iterator.getUint16()
+                        new_name = iterator.getString()
+                    except AssertionError:
+                        self.notify.warning("Received invalid UPDATE_NAME")
+                        return Task.cont
+
+                    self.get_game_from_pid(pid).set_name(pid, new_name)
+
                 else:
                     self.notify.warning("Unknown datagram {}".format(msg_id))
         return Task.cont
@@ -196,8 +206,8 @@ class Server(ShowBase):
 
         player_thing["gid"] = game.get_gid()  # set the active_connection's game for this PID
         connection = player_thing["connection"]  # get the connection
-        game.add_player(connection, pid)  # add player to game
         self.cWriter.send(dg_deliver_game(game), connection)
+        game.add_player(connection, pid)  # add player to game
 
     def remove_player_from_game(self, pid, reason):
         self.notify.debug("Removing {} from game".format(pid))

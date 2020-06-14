@@ -2,7 +2,7 @@ from level.level import Level
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.DirectGui import DirectCheckButton
 from objects.timer import Timer
-from communications.communicator import dg_set_kill
+from communications.datagrams import dg_set_kill
 
 
 # Level that all come together during day
@@ -24,9 +24,8 @@ class NightLevel(Level):
 
         # Kill button
         if self.father.killer:
-            # btn_kill = DirectButton(text="kill tonight", scale=0.1, pos=(0, 0, -0.5), command=self.kill)
             btn_kill = DirectCheckButton(text="Kill", scale=0.1, command=self.kill)
-            self.buttons.append(btn_kill)
+            self.gui.append(btn_kill)
 
         # timer
         self.timer = Timer()

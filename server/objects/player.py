@@ -1,9 +1,10 @@
 import random
 from codes import ROOMS
+from names import NAMES
 
 
 class Player:
-    def __init__(self, _local_id, _name, _connection=None, _pid=None, _ai=False):
+    def __init__(self, _local_id, _connection=None, _pid=None, _ai=False):
         self.voted_to_start = False
         self.room = None
         self.blocking = None
@@ -12,7 +13,7 @@ class Player:
         self.alive = True
         self.ai = _ai
         self.local_id = _local_id
-        self.name = _name
+        self.name = "???"
         self.wants_to_kill = False
 
     def get_pid(self):
@@ -21,11 +22,18 @@ class Player:
     def get_local_id(self):
         return self.local_id
 
-    def get_name(self):
-        return self.name
-
     def get_connection(self):
         return self.connection
+
+    # self.name
+    def set_name(self, name):
+        self.name = name
+
+    def set_random_name(self):
+        self.name = random.choice(NAMES)
+
+    def get_name(self):
+        return self.name
 
     # self.wants_to_kill
     def set_wants_to_kill(self, want):

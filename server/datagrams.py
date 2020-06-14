@@ -34,10 +34,32 @@ def dg_kick_from_game(reason):
 
 
 # Lobby
-def dg_update_player_count(num):
+def dg_add_player(local_id):
+    """
+    Tells players in lobby that a new player has joined
+    :param local_id: local_id of new player
+    :type local_id: int
+    :return: the datagram to send
+    :rtype: pydatagram
+    """
     dg = PyDatagram()
-    dg.addUint8(UPDATE_PLAYER_COUNT)
-    dg.addUint8(num)
+    dg.addUint8(ADD_PLAYER)
+    dg.addUint8(local_id)
+    return dg
+
+
+def dg_remove_player(local_id):
+    """
+    Tells the players that a player has Left.
+    This should only be called while the game is in the lobby as it'll delete the player's data from clients
+    :param local_id: the local ID of the ex-player
+    :type local_id: int
+    :return: the datagram to send
+    :rtype: pydatagram
+    """
+    dg = PyDatagram()
+    dg.addUint8(REMOVE_PLAYER)
+    dg.addUint8(local_id)
     return dg
 
 
@@ -45,6 +67,23 @@ def dg_update_vote_count(num):
     dg = PyDatagram()
     dg.addUint8(UPDATE_VOTE_COUNT)
     dg.addUint8(num)
+    return dg
+
+
+def dg_update_player_name(local_id, new_name):
+    """
+    Tells players that someone has updated their name
+    :param local_id: the local ID of the player changing their name
+    :type local_id: int
+    :param new_name: the new name of the player
+    :type new_name: string
+    :return: the datagram to send
+    :rtype: pydatagram
+    """
+    dg = PyDatagram()
+    dg.addUint8(UPDATE_NAME)
+    dg.addUint8(local_id)
+    dg.addString(new_name)
     return dg
 
 

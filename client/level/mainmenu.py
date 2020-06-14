@@ -4,7 +4,7 @@ from panda3d.core import DirectionalLight, PerspectiveLens, Point3, Transparency
 from direct.gui.DirectGui import OnscreenImage, DirectButton, DGG
 from direct.interval.IntervalGlobal import LerpPosHprInterval
 
-from communications.communicator import dg_request_game
+from communications.datagrams import dg_request_game
 
 class MainMenuLevel(Level):
 
@@ -16,8 +16,8 @@ class MainMenuLevel(Level):
     # for transitions between screens on this level
     # just destroy self.images and self.buttons
     def soft_destroy(self):
-        for b in self.buttons:
-            self.destroy_button(b)
+        for g in self.gui:
+            self.destroy_gui(g)
         for i in self.images:
             self.destroy_image(i)
 
@@ -49,9 +49,9 @@ class MainMenuLevel(Level):
                                    command=self.goto_singleplayer)
 
         self.images.append(logo)
-        self.buttons.append(exit_button)
-        self.buttons.append(settings_button)
-        self.buttons.append(play_button)
+        self.gui.append(exit_button)
+        self.gui.append(settings_button)
+        self.gui.append(play_button)
 
     def goto_settings(self):
         self.soft_destroy()
@@ -68,7 +68,7 @@ class MainMenuLevel(Level):
                                    relief=None, geom_scale=(0.666, 0, 0.25), geom_pos=(0, 0, -0.75),
                                    command=self.goto_home)
 
-        self.buttons.append(back_button)
+        self.gui.append(back_button)
         self.images.append(settings_image)
 
     def goto_singleplayer(self):
@@ -110,8 +110,7 @@ class MainMenuLevel(Level):
         Level.create(self)
         self.sprites = loader.loadModel("mainmenu/mainmenu.egg")
         # red pawn
-        pawn_red = Actor("pawns/pawn",
-                         {"breath": "pawns/pawn-breath"})
+        pawn_red = Actor("pawns/pawn.bam")
         pawn_red.setPos(-4, 20, -2)
         pawn_red.setH(-145)
         pawn_red.loop('breath')
@@ -126,8 +125,7 @@ class MainMenuLevel(Level):
         self.lights[0].lookAt(self.actors[0])
 
         # white pawn
-        pawn_white = Actor("pawns/pawn",
-                           {"breath": "pawns/pawn-breath"})
+        pawn_white = Actor("pawns/pawn.bam")
         pawn_white.setPos(4, 20, -2)
         pawn_white.setH(145)
         pawn_white.loop('breath')

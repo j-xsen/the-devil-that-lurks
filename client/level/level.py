@@ -1,5 +1,4 @@
 from panda3d.core import VirtualFileSystem
-from panda3d.core import Multifile
 from panda3d.core import Filename
 
 
@@ -11,7 +10,7 @@ class Level:
         self.actors = []
         self.lights = []
         self.sprites = None
-        self.buttons = []
+        self.gui = []
         self.images = []
         self.text_nodepaths = []
         self.text = []
@@ -28,27 +27,27 @@ class Level:
         # delete uis
 
         for a in self.actors:
-            self.destroy_actor(a)
+            a.cleanup()
         self.actors = []
 
         for l in self.lights:
-            self.destroy_light(l)
+            l.removeNode()
         self.lights = []
 
-        for b in self.buttons:
-            self.destroy_button(b)
-        self.buttons = []
+        for g in self.gui:
+            g.destroy()
+        self.gui = []
 
         for i in self.images:
-            self.destroy_image(i)
+            i.destroy()
         self.images = []
 
         for t in self.text_nodepaths:
-            self.destroy_text_nodepaths(t)
+            t.removeNode()
         self.text_nodepaths = []
 
         for t in self.text:
-            self.destroy_text(t)
+            t.destroy()
         self.text = []
 
         if self.timer:
@@ -58,25 +57,4 @@ class Level:
         for f in self.multifiles:
             self.father.vfs.unmount(f)
 
-        return
-
-    def destroy_actor(self, a):
-        a.cleanup()
-
-    def destroy_light(self, l):
-        l.removeNode()
-
-    def destroy_button(self, b):
-        b.destroy()
-
-    def destroy_image(self, i):
-        i.destroy()
-
-    def destroy_text_nodepaths(self, t):
-        t.removeNode()
-
-    def destroy_text(self, t):
-        t.destroy()
-
-    def update(self):
         return

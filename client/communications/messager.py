@@ -1,9 +1,9 @@
 from communications.codes import *
-from communications.communicator import dg_send_heartbeat
+from communications.datagrams import dg_send_heartbeat
 from direct.distributed.PyDatagramIterator import PyDatagramIterator
 from direct.directnotify.DirectNotifyGlobal import directNotify
 from objects.alert import Alert
-from direct.task.TaskManagerGlobal import taskMgr, Task
+from direct.task.TaskManagerGlobal import Task
 from panda3d.core import NetDatagram
 
 
@@ -91,8 +91,7 @@ class Messager:
         # if father is on main menu, send them to lobby
         if self.father.active_level.name == "Main Menu":
             self.father.set_active_level("Lobby")
-            self.father.active_level.update_player_count(player_count)
-            self.father.active_level.update_vote_count(vote_count)
+            self.father.active_level.update_player()
         else:
             self.notify.warning("Received a game while in a game")
 
@@ -127,25 +126,53 @@ class Messager:
         self.notify.debug("Connection has been killed")
         return True
 
-    def update_player_count(self, iterator):
+    def add_player(self, iterator):
         """
-        Called when server sends an updated player count
+        Called when server sends a player
         @return: if successful
         @rtype: bool
         """
         if self.father.active_level.name == "Lobby":
             try:
-                player_count = iterator.getUint8()
+                new_player_id = iterator.getUint8()
             except AssertionError:
-                self.notify.warning("Invalid UPDATE_PLAYER_COUNT")
+                self.notify.warning("Invalid add_player")
                 return False
 
-            self.father.active_level.update_player_count(player_count)
+            self.father.add_player(new_player_id)
+
+            # check if name sent with it
+            try:
+                name = iterator.getString()
+                self.father.update_name(new_player_id, name)
+            except AssertionError:
+                self.notify.debug("No name sent w/ it")
         else:
-            self.notify.warning("update_player_count called when not in lobby")
+            self.notify.warning("add_player called when not in lobby")
             return False
 
         return True
+
+    def remove_player(self, iterator):
+        """
+        Called when server removes a player. this should only be called by server while in lobby
+        @return: if successful
+        @rtype: bool
+        """
+        if self.father.active_level. name == "Lobby":
+            try:
+                ex_player_id = iterator.getUint8()
+            except AssertionError:
+                self.notify.warning("Invalid remove_player")
+                return False
+
+            self.father.remove_player(ex_player_id)
+        else:
+            self.notify.warning("remove_player called when not in lobby")
+            return False
+
+        return True
+
 
     def update_vote_count(self, iterator):
         """
@@ -167,12 +194,29 @@ class Messager:
 
         return True
 
+    def update_name(self, iterator):
+        """
+        Called when server tells us a player has changed their name
+        @return: if successful
+        @rtype: bool
+        """
+        try:
+            local_id = iterator.getUint8()
+            new_name = iterator.getString()
+        except AssertionError:
+            self.notify.warning("Invalid update_name")
+            return False
+
+        self.father.update_name(local_id, new_name)
+
     def start_game(self, iterator):
         """
         Called when the server tells client that the game has started
         @return: if successful
         @rtype: bool
         """
+
+        # TODO wtf is this
         if self.father.active_level.name == "Lobby":
             players = {}
             i = 0
@@ -283,7 +327,8 @@ class Messager:
         DELIVER_GAME: game_received,
         KICKED_FROM_GAME: kicked_from_game,
         KILLED_CONNECTION: killed_connection,
-        UPDATE_PLAYER_COUNT: update_player_count,
+        ADD_PLAYER: add_player,
+        REMOVE_PLAYER: remove_player,
         UPDATE_VOTE_COUNT: update_vote_count,
         START_GAME: start_game,
         YOU_ARE_KILLER: you_are_killer,
@@ -291,5 +336,6 @@ class Messager:
         GOTO_DAY: goto_day,
         GOTO_NIGHT: goto_night,
         KILL_FAILED_EMPTY_ROOM: kill_failed_empty_room,
-        NUM_IN_ROOM: number_in_room
+        NUM_IN_ROOM: number_in_room,
+        UPDATE_NAME: update_name
     }

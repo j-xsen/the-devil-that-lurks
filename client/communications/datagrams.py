@@ -41,6 +41,23 @@ def dg_leave_lobby(pid):
     return dg
 
 
+def dg_update_name(pid, name):
+    """
+    Call when you want to update your name
+    @param pid: player ID
+    @type pid: int
+    @param name: new name
+    @type name: string
+    @return: the datagram you need to send
+    @rtype: datagram
+    """
+    dg = PyDatagram()
+    dg.addUint8(UPDATE_NAME)
+    dg.addUint16(pid)
+    dg.addString(name)
+    return dg
+
+
 # GAME
 def dg_set_room(pid, room):
     dg = PyDatagram()
