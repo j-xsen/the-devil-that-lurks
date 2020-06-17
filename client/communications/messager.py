@@ -140,13 +140,6 @@ class Messager:
                 return False
 
             self.father.add_player(new_player_id)
-
-            # check if name sent with it
-            try:
-                name = iterator.getString()
-                self.father.update_name(new_player_id, name)
-            except AssertionError:
-                self.notify.debug("No name sent w/ it")
         else:
             self.notify.warning("add_player called when not in lobby")
             return False
@@ -172,7 +165,6 @@ class Messager:
             return False
 
         return True
-
 
     def update_vote_count(self, iterator):
         """

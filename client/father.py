@@ -60,6 +60,7 @@ class Father:
         base.camera.setPos((0, 0, 0))
         base.camera.setHpr((0, 0, 0))
 
+        # TODO better way to do this
         for l in self.levels:
             if l.name == level:
                 self.active_level = l

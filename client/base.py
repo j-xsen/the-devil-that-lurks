@@ -50,8 +50,8 @@ class Client(ShowBase):
         self.connect()
 
     def debug(self):
-        self.notify.debug("Debug")
-        self.father.set_active_level("Main Menu")
+        from objects.alert import Alert
+        testing_alert = Alert(-1)
 
     def connect(self):
         port_address = SERVER_PORT
