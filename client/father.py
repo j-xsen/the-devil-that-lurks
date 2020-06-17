@@ -2,6 +2,7 @@ from level.mainmenu import MainMenuLevel
 from level.day import DayLevel
 from level.lobby import LobbyLevel
 from level.night import NightLevel
+from objects.alert import Alert
 from direct.directnotify.DirectNotifyGlobal import directNotify
 from communications.datagrams import dg_goodbye
 from panda3d.core import VirtualFileSystem
@@ -119,6 +120,25 @@ class Father:
         self.cManager.closeConnection(self.my_connection)
         sys.exit()
 
+    def failed_to_connect(self):
+        """
+        Call this when connection to server fails
+        """
+        self.level_main_menu.failed_to_connect()
+
+    def check_connection(self):
+        """
+        Checks if we are currently connected
+        @return: If we are currently connected
+        @rtype: bool
+        """
+        try:
+            if self.my_connection:
+                return True
+        except AttributeError:
+            return False
+        return False
+
     def write(self, dg):
         """
         Sends message to server
@@ -130,5 +150,6 @@ class Father:
         if self.my_connection:
             return self.cWriter.send(dg, self.my_connection)
         else:
+            Alert(-2)
             self.notify.error("No connection to send message to!")
         return False

@@ -6,5 +6,6 @@ LOCAL_EN = {
     ALREADY_IN_GAME: 'You were already in a game! We went ahead and removed you.',
     GENERAL: 'You have been kicked from this game.',
     LEFT_GAME: 'You have left this game.',
-    -1: 'Debug'
+    -1: 'Debug',
+    -2: 'Failed to connect!'
 }

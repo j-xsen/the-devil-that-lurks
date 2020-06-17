@@ -3,6 +3,7 @@ from level.level import Level
 from panda3d.core import DirectionalLight, PerspectiveLens, Point3, TransparencyAttrib
 from direct.gui.DirectGui import OnscreenImage, DirectButton, DGG
 from direct.interval.IntervalGlobal import LerpPosHprInterval
+from objects.alert import Alert
 
 from communications.datagrams import dg_request_game
 
@@ -17,9 +18,9 @@ class MainMenuLevel(Level):
     # just destroy self.images and self.buttons
     def soft_destroy(self):
         for g in self.gui:
-            self.destroy_gui(g)
+            g.destroy()
         for i in self.images:
-            self.destroy_image(i)
+            i.destroy()
 
     def goto_home(self):
         self.soft_destroy()
@@ -48,6 +49,9 @@ class MainMenuLevel(Level):
                                    relief=None, geom_scale=(1, 0, 0.3), geom_pos=(0, 0, 0.1),
                                    command=self.goto_singleplayer)
 
+        if not self.father.check_connection():
+            play_button["state"] = DGG.DISABLED
+
         self.images.append(logo)
         self.gui.append(exit_button)
         self.gui.append(settings_button)
@@ -72,39 +76,14 @@ class MainMenuLevel(Level):
         self.images.append(settings_image)
 
     def goto_singleplayer(self):
-        self.father.write(dg_request_game(self.father.pid))
+        if self.father.my_connection:
+            self.father.write(dg_request_game(self.father.pid))
+        else:
+            Alert(-2)
+            self.failed_to_connect()
 
-    def goto_play(self):
-        self.soft_destroy()
-        LerpPosHprInterval(base.camera, 0.35, Point3(-1, 12, 0), Point3(7, 0, 0)).start()
-
-        play_image = OnscreenImage(image='mainmenu/mm-play-ready.png', pos=(0, 0, 0.7), scale=(0.5, 1, 0.2))
-        play_image.setTransparency(TransparencyAttrib.MAlpha)
-
-        singleplayer_button = DirectButton(geom=(self.sprites.find('**/mm-singleplayer-ready'),
-                                                 self.sprites.find('**/mm-singleplayer-click'),
-                                                 self.sprites.find('**/mm-singleplayer-hover'),
-                                                 self.sprites.find('**/mm-singleplayer-disabled')),
-                                           relief=None, geom_scale=(0.9, 0, 0.2), geom_pos=(0, 0, 0.2),
-                                           command=self.goto_singleplayer)
-        multiplayer_button = DirectButton(geom=(self.sprites.find('**/mm-multiplayer-ready'),
-                                                self.sprites.find('**/mm-multiplayer-click'),
-                                                self.sprites.find('**/mm-multiplayer-hover'),
-                                                self.sprites.find('**/mm-multiplayer-disabled')),
-                                          relief=None, geom_scale=(0.9, 0, 0.2), geom_pos=(0, 0, -0.3),
-                                          command=self.goto_home, state=DGG.DISABLED)
-        back_button = DirectButton(geom=(self.sprites.find('**/mm-back-ready'),
-                                         self.sprites.find('**/mm-back-click'),
-                                         self.sprites.find('**/mm-back-hover'),
-                                         self.sprites.find('**/mm-back-disabled')),
-                                   relief=None, geom_scale=(0.666, 0, 0.25), geom_pos=(0, 0, -0.75),
-                                   command=self.goto_home)
-
-        self.buttons.append(singleplayer_button)
-        self.buttons.append(multiplayer_button)
-        self.buttons.append(back_button)
-
-        self.images.append(play_image)
+    def failed_to_connect(self):
+        self.gui[2]["state"] = DGG.DISABLED
 
     def create(self):
         Level.create(self)

@@ -12,6 +12,7 @@ from panda3d.core import ConnectionWriter
 from communications.codes import *
 from father import Father
 from communications.messager import Messager
+from objects.alert import Alert
 
 from config import *
 
@@ -50,7 +51,6 @@ class Client(ShowBase):
         self.connect()
 
     def debug(self):
-        from objects.alert import Alert
         testing_alert = Alert(-1)
 
     def connect(self):
@@ -70,7 +70,9 @@ class Client(ShowBase):
             taskMgr.add(self.messager.received_code, "Poll the connection reader", -39)
             taskMgr.doMethodLater(HEARTBEAT_PLAYER, self.messager.heartbeat, "Send heartbeat")
         else:
-            self.notify.info("Could not connect!")
+            Alert(-2)
+            self.father.failed_to_connect()
+            self.notify.warning("Could not connect!")
 
 
 app = Client()
