@@ -38,14 +38,6 @@ class LobbyLevel(Level):
         self.gui.append(btn_leave)
         self.gui.append(entry_name)
 
-    # for transitions between screens on this level
-    # just destroy self.images and self.buttons
-    def soft_destroy(self):
-        for b in self.buttons:
-            self.destroy_button(b)
-        for t in self.text:
-            self.destroy_image(t)
-
     def vote_to_start(self):
         self.father.write(dg_vote_to_start(self.father.pid))
 
@@ -53,10 +45,16 @@ class LobbyLevel(Level):
         self.father.write(dg_leave_lobby(self.father.pid))
 
     def update_player(self):
+        """
+        Updates all the player-dependent info (List of names & Count)
+        """
         self.update_player_list()
         self.update_player_count()
 
     def update_player_list(self):
+        """
+        Updates list of player names
+        """
         # get list from father
         names = ""
         for p in self.father.players:
@@ -66,11 +64,19 @@ class LobbyLevel(Level):
         self.text[1].text = names
 
     def update_player_count(self):
+        """
+        Updates the player count information
+        """
         self.players_count = len(self.father.players)
         self.text[0].text = "{}/9".format(self.players_count)
         self.text[3].text = "{}/{}".format(self.votes, self.players_count)
 
     def update_vote_count(self, votes):
+        """
+        Uppdates the vote count information
+        @param votes: the amount of votes FOR starting
+        @type votes: int
+        """
         self.votes = votes
         self.text[3].text = "{}/{}".format(votes, self.players_count)
 

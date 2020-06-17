@@ -63,6 +63,7 @@ class Game:
 
         if not self.any_real_players():
             self.delete_this_game()
+            return
 
         if not self.started:
             self.verify_vote_to_start()
@@ -305,12 +306,18 @@ class Game:
         return Task.again
 
     def any_real_players(self):
-        any_real = False
+        """
+        Checks if there's any real players left in the game
+        :return: if there's any real players left in the game
+        :rtype: bool
+        """
+        if len(self.players) == 0:
+            return False
+
         for p in self.players:
             if not p.ai:
-                any_real = True
-                break
-        return any_real
+                return True
+        return False
 
     def message_all_players(self, dg):
         for p in self.players:

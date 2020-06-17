@@ -85,6 +85,9 @@ class MainMenuLevel(Level):
     def failed_to_connect(self):
         self.gui[2]["state"] = DGG.DISABLED
 
+    def connected(self):
+        self.gui[2]["state"] = DGG.NORMAL
+
     def create(self):
         Level.create(self)
 

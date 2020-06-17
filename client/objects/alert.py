@@ -14,18 +14,19 @@ class Alert:
             reason = GENERAL
 
         self.bg_frame = DirectFrame(frameColor=(0, 0, 0, 0),
-                                    frameSize=(-1, 1, -1, 1), suppressMouse=1, state=DGG.NORMAL)
+                                    frameSize=(-1, 1, -1, 1), suppressMouse=1, state=DGG.NORMAL,
+                                    sortOrder=1000)
         self.frame = DirectFrame(frameSize=(1, 1, 1, 1),
                                  image=ok.find('**/alert'),
-                                 image_scale=(1, 0, 0.6), state=DGG.NORMAL)
+                                 image_scale=(1, 0, 0.6), state=DGG.NORMAL, parent=self.bg_frame)
         self.text = OnscreenText(text=LOCAL_EN[reason], fg=(1, 1, 1, 1), pos=(0, 0.15, 0),
-                                 align=TextNode.ACenter, wordwrap=13)
+                                 align=TextNode.ACenter, wordwrap=13, parent=self.frame)
         self.button = DirectButton(geom=(ok.find('**/ok-ready'),
                                          ok.find('**/ok-click'),
                                          ok.find('**/ok-hover'),
                                          ok.find('**/ok-click')),
                                    relief=None, geom_scale=(0.3, 0, 0.15), geom_pos=(0, 0, -0.175),
-                                   pressEffect=0, command=self.destroy)
+                                   pressEffect=0, command=self.destroy, parent=self.frame)
 
         loader.unloadModel(ok)
 

@@ -63,7 +63,7 @@ class Client(ShowBase):
                                                               timeout)
         if my_connection:
             self.notify.info("Connected")
-            self.father.my_connection = my_connection
+            self.father.set_connection(my_connection)
             self.cReader.addConnection(my_connection)
 
             # poll

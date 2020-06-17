@@ -9,16 +9,17 @@ from panda3d.core import VirtualFileSystem
 from panda3d.core import Filename
 import sys
 import atexit
+from level.codes import *
 
 
 # The Father object holds all UIs and Levels
 class Father:
+
     def __init__(self, _cWriter, _cManager, _cReader):
         # notify
         self.notify = directNotify.newCategory("father")
 
         # Create stuff we don't want to keep recreating because of their permanence
-        self.levels = []
         self.rooms = []
         self.players = {}
         self.dead = []
@@ -31,20 +32,16 @@ class Father:
         self.vfs.mount(Filename("mf/pawns.mf"), ".", VirtualFileSystem.MFReadOnly)
 
         # Levels
-        self.level_main_menu = MainMenuLevel(self)
-        self.level_day = DayLevel(self)
-        self.level_lobby = LobbyLevel(self)
-        self.level_night = NightLevel(self)
-
-        # Add levels to array
-        self.levels.append(self.level_main_menu)
-        self.levels.append(self.level_day)
-        self.levels.append(self.level_lobby)
-        self.levels.append(self.level_night)
+        self.levels = {
+            MAINMENU: MainMenuLevel(self),
+            LOBBY: LobbyLevel(self),
+            DAY: DayLevel(self),
+            NIGHT: NightLevel(self)
+        }
 
         # Set active level
-        self.active_level = self.level_main_menu
-        self.active_level.create()
+        self.active_level = MAINMENU
+        self.levels[self.active_level].create()
 
         # so we can send messages
         self.my_connection = None
@@ -55,18 +52,25 @@ class Father:
 
         atexit.register(self.exit_game)
 
-    def set_active_level(self, level):
-        self.active_level.destroy()
+    def set_active_level(self, level, day_count=0):
+        """
+        Set the active level
+        @param level: the level's code
+        @param day_count: (opt) if day_count has been updated
+        @type level: int
+        """
+
+        if day_count > 0:
+            self.day = day_count
+
+        self.levels[self.active_level].destroy()
 
         base.camera.setPos((0, 0, 0))
         base.camera.setHpr((0, 0, 0))
 
-        # TODO better way to do this
-        for l in self.levels:
-            if l.name == level:
-                self.active_level = l
+        self.active_level = level
 
-        self.active_level.create()
+        self.levels[self.active_level].create()
 
     def add_player(self, local_id):
         """
@@ -76,9 +80,8 @@ class Father:
         """
         self.players[local_id] = {"name": "???"}
 
-        if self.active_level.name == "Lobby":
-            self.level_lobby.update_player()
-            print("Added player {}".format(local_id))
+        if self.active_level == LOBBY:
+            self.levels[LOBBY].update_player()
 
     def remove_player(self, local_id):
         """
@@ -86,9 +89,9 @@ class Father:
         @param local_id: the local id of the ex-player
         @type local_id: int
         """
-        if self.active_level.name == "Lobby":
+        if self.active_level == LOBBY:
             self.players.pop(local_id)
-            self.level_lobby.update_player()
+            self.levels[LOBBY].update_player()
 
     def update_name(self, local_id, new_name):
         """
@@ -98,20 +101,15 @@ class Father:
         @param new_name: The player's new name
         @type new_name: string
         """
-        if self.active_level.name == "Lobby":
+        if self.active_level == LOBBY:
             self.players[local_id] = {"name": new_name}
-            self.level_lobby.update_player()
-
-    def goto_day(self, day_count):
-        self.notify.debug("Setting time to day")
-        self.day = day_count
-        self.set_active_level("Day")
-
-    def goto_night(self):
-        self.notify.debug("Setting time to night")
-        self.set_active_level("Night")
+            self.levels[LOBBY].update_player()
 
     def exit_game(self):
+        """
+        Use this to close the game.
+        Closes connection and tells server we're leaving
+        """
         if not self.my_connection:
             sys.exit()
 
@@ -120,11 +118,19 @@ class Father:
         self.cManager.closeConnection(self.my_connection)
         sys.exit()
 
+    def set_connection(self, connection):
+        self.my_connection = connection
+
+        if self.active_level == MAINMENU:
+            self.levels[MAINMENU].connected()
+
     def failed_to_connect(self):
         """
         Call this when connection to server fails
+        Tells the game to back to main menu & display an error
         """
-        self.level_main_menu.failed_to_connect()
+        self.set_active_level(MAINMENU)
+        self.levels[MAINMENU].failed_to_connect()
 
     def check_connection(self):
         """
@@ -151,5 +157,5 @@ class Father:
             return self.cWriter.send(dg, self.my_connection)
         else:
             Alert(-2)
-            self.notify.error("No connection to send message to!")
+            self.notify.warning("No connection to send message to!")
         return False
