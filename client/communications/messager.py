@@ -224,7 +224,6 @@ class Messager:
                 i += 1
 
             self.father.players = players
-            self.father.day = 0
             self.father.set_active_level(DAY)
         else:
             self.notify.warning("start_game while not in lobby")

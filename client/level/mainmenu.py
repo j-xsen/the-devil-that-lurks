@@ -91,8 +91,7 @@ class MainMenuLevel(Level):
     def create(self):
         Level.create(self)
 
-        # father variable that should be reset anytime player is sent to main menu
-        self.father.players = {}
+        self.father.reset_game_vars()
 
         self.sprites = loader.loadModel("mainmenu/mainmenu.egg")
         # red pawn

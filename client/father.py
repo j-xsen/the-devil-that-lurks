@@ -23,8 +23,7 @@ class Father:
         self.rooms = []
         self.players = {}
         self.dead = []
-        self.day = 1
-        self.game = None
+        self.day = 0
         self.killer = False
         self.vfs = VirtualFileSystem.getGlobalPtr()
 
@@ -52,15 +51,14 @@ class Father:
 
         atexit.register(self.exit_game)
 
-    def set_active_level(self, level, day_count=0):
+    def set_active_level(self, level, day_count=-1):
         """
         Set the active level
         @param level: the level's code
         @param day_count: (opt) if day_count has been updated
         @type level: int
         """
-
-        if day_count > 0:
+        if day_count != -1:
             self.day = day_count
 
         self.levels[self.active_level].destroy()
@@ -104,6 +102,15 @@ class Father:
         if self.active_level == LOBBY:
             self.players[local_id] = {"name": new_name}
             self.levels[LOBBY].update_player()
+
+    def reset_game_vars(self):
+        """
+        Erases all game variables so you can start fresh
+        """
+        self.players = {}
+        self.dead = []
+        self.day = 0
+        self.killer = False
 
     def exit_game(self):
         """
