@@ -1,35 +1,42 @@
-from direct.gui.OnscreenText import OnscreenText
-from direct.task.TaskManagerGlobal import taskMgr, Task
-from communications.codes import TIME
+SUN = 0
+MOON = 1
+GUN = 2
 
 
-class Timer(OnscreenText):
-    def __init__(self):
-        OnscreenText.__init__(self, text=str(0), pos=(0, 0.75), scale=0.35, fg=(1, 1, 1, 1))
-        self.time = TIME
+class Timer:
 
-    def start(self):
-        self.time = TIME
-        self.text = str(self.time)
-        taskMgr.doMethodLater(1, self.update, 'Update Timer Object', uponDeath=self.task_stopped)
+    def __init__(self, style):
+        """
+        Timer class with fun pictures
+        @param style: 0 = SUN, 1 = MOON, 2 = GUN
+        @type style: int
+        """
+        self.style = style
 
-    def annihilate(self):
-        self.stop()
-        self.destroy()
+        self.model = loader.loadModel("timer.egg")
 
-    def task_stopped(self, taskdata):
-        self.annihilate()
+        self.types[style](self)
 
-    def stop(self):
-        taskMgr.remove('Update Timer Object')
+    def create_sun(self):
+        """
+        Creates the sun timer
+        """
+        return
 
-    def update(self, taskdata):
-        # if timer = 0, delete task
-        if self.time == 1:
-            return Task.done
-        else:
-            self.time -= 1
+    def create_moon(self):
+        """
+        Creates the moon timer
+        """
+        return
 
-        self.text = str(self.time)
+    def create_gun(self):
+        """
+        Creates the gun timer
+        """
+        return
 
-        return Task.again
+    types = {
+        SUN: create_sun,
+        MOON: create_moon,
+        GUN: create_gun
+    }

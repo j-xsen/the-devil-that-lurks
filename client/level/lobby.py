@@ -17,9 +17,6 @@ class LobbyLevel(Level):
         self.players_count = 0
 
     def create(self):
-        self.text = []
-        self.buttons = []
-
         txt_players = OnscreenText(text="Players", pos=(0, 0.5), scale=0.35, fg=(1, 1, 1, 1))
         txt_names = OnscreenText(text="", pos=(-.925, -0.15), scale=0.1, fg=(1, 1, 1, 1))
         txt_current = OnscreenText(text="0/9", pos=(0, 0), scale=0.2, fg=(1, 1, 1, 1))
@@ -30,13 +27,13 @@ class LobbyLevel(Level):
 
         entry_name = Entry("Enter a name", (-1, 0, 0), self.update_name)
 
-        self.text.append(txt_current)
-        self.text.append(txt_names)
-        self.text.append(txt_players)
-        self.text.append(txt_votes)
-        self.gui.append(btn_vote)
-        self.gui.append(btn_leave)
-        self.gui.append(entry_name)
+        self.text["txt_current"] = txt_current
+        self.text["txt_names"] = txt_names
+        self.text["txt_players"] = txt_players
+        self.text["txt_votes"] = txt_votes
+        self.gui["btn_vote"] = btn_vote
+        self.gui["btn_leave"] = btn_leave
+        self.gui["entry_name"] = entry_name
 
     def vote_to_start(self):
         self.father.write(dg_vote_to_start(self.father.pid))
@@ -61,24 +58,24 @@ class LobbyLevel(Level):
             names += "{}\n".format(self.father.players[p]["name"])
 
         # display
-        self.text[1].text = names
+        self.text["txt_names"].text = names
 
     def update_player_count(self):
         """
         Updates the player count information
         """
         self.players_count = len(self.father.players)
-        self.text[0].text = "{}/9".format(self.players_count)
-        self.text[3].text = "{}/{}".format(self.votes, self.players_count)
+        self.text["txt_players"].text = "{}/9".format(self.players_count)
+        self.text["txt_votes"].text = "{}/{}".format(self.votes, self.players_count)
 
     def update_vote_count(self, votes):
         """
-        Uppdates the vote count information
+        Updates the vote count information and displays it
         @param votes: the amount of votes FOR starting
         @type votes: int
         """
         self.votes = votes
-        self.text[3].text = "{}/{}".format(votes, self.players_count)
+        self.text["txt_votes"].text = "{}/{}".format(votes, self.players_count)
 
     def update_name(self, name):
         self.father.write(dg_update_name(self.father.pid, name))

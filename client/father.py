@@ -27,8 +27,9 @@ class Father:
         self.killer = False
         self.vfs = VirtualFileSystem.getGlobalPtr()
 
-        # this is used in nearly every level, just keep it loaded
+        # these are used in nearly every level, just keep it loaded
         self.vfs.mount(Filename("mf/pawns.mf"), ".", VirtualFileSystem.MFReadOnly)
+        self.vfs.mount(Filename("mf/timer.mf"), ".", VirtualFileSystem.MFReadOnly)
 
         # Levels
         self.levels = {

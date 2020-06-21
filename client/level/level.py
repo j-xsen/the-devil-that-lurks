@@ -7,13 +7,13 @@ class Level:
         self.multifiles = multifiles
         self.name = name
         self.father = father
-        self.actors = []
-        self.lights = []
+        self.actors = {}
+        self.lights = {}
         self.sprites = None
-        self.gui = []
-        self.images = []
-        self.text_nodepaths = []
-        self.text = []
+        self.gui = {}
+        self.images = {}
+        self.text_nodepaths = {}
+        self.text = {}
         self.timer = None
 
     def create(self):
@@ -27,28 +27,28 @@ class Level:
         # delete uis
 
         for a in self.actors:
-            a.cleanup()
-        self.actors = []
+            self.actors[a].cleanup()
+        self.actors = {}
 
         for l in self.lights:
-            l.removeNode()
-        self.lights = []
+            self.lights[l].removeNode()
+        self.lights = {}
 
         for g in self.gui:
-            g.destroy()
-        self.gui = []
+            self.gui[g].destroy()
+        self.gui = {}
 
         for i in self.images:
-            i.destroy()
-        self.images = []
+            self.images[i].destroy()
+        self.images = {}
 
         for t in self.text_nodepaths:
-            t.removeNode()
-        self.text_nodepaths = []
+            self.text_nodepaths[t].removeNode()
+        self.text_nodepaths = {}
 
         for t in self.text:
-            t.destroy()
-        self.text = []
+            self.text[t].destroy()
+        self.text = {}
 
         if self.timer:
             self.timer.annihilate()

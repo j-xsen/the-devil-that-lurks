@@ -7,6 +7,7 @@ from objects.alert import Alert
 
 from communications.datagrams import dg_request_game
 
+
 class MainMenuLevel(Level):
 
     multifiles = ["mainmenu.mf"]
@@ -17,17 +18,23 @@ class MainMenuLevel(Level):
     # for transitions between screens on this level
     # just destroy self.images and self.buttons
     def soft_destroy(self):
+        """
+        Destroys GUI & Images, but saves Lights and Actors
+        @return:
+        @rtype:
+        """
         for g in self.gui:
-            g.destroy()
+            self.gui[g].destroy()
         for i in self.images:
-            i.destroy()
+            self.images[i].destroy()
 
     def goto_home(self):
         self.soft_destroy()
 
         LerpPosHprInterval(base.camera, 0.35, Point3(0, 0, 0), Point3(0, 0, 0)).start()
 
-        logo = OnscreenImage(image=loader.loadTexture('mainmenu/logo.png'), pos=(0, 0, 0.625), scale=(1, 1, 0.4))
+        logo = OnscreenImage(image=loader.loadTexture('mainmenu/logo.png'), pos=(0, 0, 0.625),
+                             scale=(1, 1, 0.4))
         logo.setTransparency(TransparencyAttrib.MAlpha)
 
         exit_button = DirectButton(geom=(self.sprites.find('**/mm-exit-ready'),
@@ -52,17 +59,18 @@ class MainMenuLevel(Level):
         if not self.father.check_connection():
             play_button["state"] = DGG.DISABLED
 
-        self.images.append(logo)
-        self.gui.append(exit_button)
-        self.gui.append(settings_button)
-        self.gui.append(play_button)
+        self.images["img_logo"] = logo
+        self.gui["btn_exit"] = exit_button
+        self.gui["btn_settings"] = settings_button
+        self.gui["btn_play"] = play_button
 
     def goto_settings(self):
         self.soft_destroy()
 
         LerpPosHprInterval(base.camera, 0.35, Point3(1, 12, 0), Point3(-7, 0, 0)).start()
 
-        settings_image = OnscreenImage(image='mainmenu/mm-settings-ready.png', pos=(0, 0, 0.7), scale=(0.5, 1, 0.2))
+        settings_image = OnscreenImage(image='mainmenu/mm-settings-ready.png', pos=(0, 0, 0.7),
+                                       scale=(0.5, 1, 0.2))
         settings_image.setTransparency(TransparencyAttrib.MAlpha)
 
         back_button = DirectButton(geom=(self.sprites.find('**/mm-back-ready'),
@@ -72,8 +80,8 @@ class MainMenuLevel(Level):
                                    relief=None, geom_scale=(0.666, 0, 0.25), geom_pos=(0, 0, -0.75),
                                    command=self.goto_home)
 
-        self.gui.append(back_button)
-        self.images.append(settings_image)
+        self.gui["btn_settings_back"] = back_button
+        self.images["img_settings"] = settings_image
 
     def goto_singleplayer(self):
         if self.father.my_connection:
@@ -83,14 +91,23 @@ class MainMenuLevel(Level):
             self.failed_to_connect()
 
     def failed_to_connect(self):
-        self.gui[2]["state"] = DGG.DISABLED
+        """
+        Called when Father is told that we failed to connect.
+        Disables the play button since there's Nothing to connect to
+        """
+        self.gui["btn_play"]["state"] = DGG.DISABLED
 
     def connected(self):
-        self.gui[2]["state"] = DGG.NORMAL
+        """
+        Called when Father is told that we've been connected
+        Enables the play button
+        """
+        self.gui["btn_play"]["state"] = DGG.NORMAL
 
     def create(self):
         Level.create(self)
 
+        # reset game vars when going to main menu
         self.father.reset_game_vars()
 
         self.sprites = loader.loadModel("mainmenu/mainmenu.egg")
@@ -99,35 +116,35 @@ class MainMenuLevel(Level):
         pawn_red.setPos(-4, 20, -2)
         pawn_red.setH(-145)
         pawn_red.loop('breath')
-        self.actors.append(pawn_red)
-        # light
-        slight_red = DirectionalLight('slight_red')
-        slight_red.setColor((0.682 / 1.5, 0.125 / 1.5, 0.121 / 1.5, 1))
-        slight_red.setLens(PerspectiveLens())
-        slight_red_np = render.attachNewNode(slight_red)
-        self.lights.append(slight_red_np)
-        self.lights[0].setPos(10, 15, 10)
-        self.lights[0].lookAt(self.actors[0])
+        self.actors["actor_pawn_red"] = pawn_red
+        # red pawn light
+        dlight_red = DirectionalLight('DL Red')
+        dlight_red.setColor((0.682 / 1.5, 0.125 / 1.5, 0.121 / 1.5, 1))
+        dlight_red.setLens(PerspectiveLens())
+        dlight_red_np = render.attachNewNode(dlight_red)
+        self.lights["dlight_red_np"] = dlight_red_np
+        self.lights["dlight_red_np"].setPos(10, 15, 10)
+        self.lights["dlight_red_np"].lookAt(self.actors["actor_pawn_red"])
 
         # white pawn
         pawn_white = Actor("pawns/pawn.bam")
         pawn_white.setPos(4, 20, -2)
         pawn_white.setH(145)
         pawn_white.loop('breath')
-        self.actors.append(pawn_white)
+        self.actors["actor_pawn_white"] = pawn_white
         # light
-        dl_white = DirectionalLight('DL White')
-        dl_white.setColor((0.9 / 2.5, 0.9 / 2.5, 0.9 / 2.5, 1))
-        dl_white.setLens(PerspectiveLens())
-        dl_white_np = render.attachNewNode(dl_white)
-        self.lights.append(dl_white_np)
-        self.lights[1].setPos(-10, 15, 10)
-        self.lights[1].lookAt(self.actors[1])
+        dlight_white = DirectionalLight('DL White')
+        dlight_white.setColor((0.9 / 2.5, 0.9 / 2.5, 0.9 / 2.5, 1))
+        dlight_white.setLens(PerspectiveLens())
+        dlight_white_np = render.attachNewNode(dlight_white)
+        self.lights["dlight_white_np"] = dlight_white_np
+        self.lights["dlight_white_np"].setPos(-10, 15, 10)
+        self.lights["dlight_white_np"].lookAt(self.actors["actor_pawn_white"])
 
         # upon creation, enable these items
-        self.actors[0].reparentTo(render)
-        self.actors[0].setLight(self.lights[0])
-        self.actors[1].reparentTo(render)
-        self.actors[1].setLight(self.lights[1])
+        self.actors["actor_pawn_red"].reparentTo(render)
+        self.actors["actor_pawn_red"].setLight(self.lights["dlight_red_np"])
+        self.actors["actor_pawn_white"].reparentTo(render)
+        self.actors["actor_pawn_white"].setLight(self.lights["dlight_white_np"])
 
         self.goto_home()
