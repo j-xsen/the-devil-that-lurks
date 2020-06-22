@@ -165,7 +165,7 @@ class Messager:
         :rtype: bool
         """
         self.notify.debug("removing player {}".format(pid))
-        self.games[self.active_connections[pid]["gid"]].remove_player(pid)
+        self.games[self.active_connections[pid]["gid"]].remove_player_from_pid(pid)
         self.active_connections[pid]["gid"] = None
         self.cWriter.send(dg_kick_from_game(reason), self.active_connections[pid]["connection"])
         return True
@@ -352,7 +352,7 @@ class Messager:
             self.notify.warning("Received invalid UPDATE_NAME")
             return False
 
-        self.games[self.active_connections[pid]].set_name(pid, new_name)
+        self.games[self.active_connections[pid]["gid"]].set_name(pid, new_name)
         return True
 
     # Mapping
