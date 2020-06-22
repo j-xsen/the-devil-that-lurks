@@ -66,8 +66,8 @@ class Client(ShowBase):
             self.father.set_connection(my_connection)
             self.cReader.addConnection(my_connection)
 
-            # poll
-            taskMgr.add(self.messager.received_code, "Poll the connection reader", -39)
+            # tasks
+            taskMgr.add(self.messager.check_for_message, "Poll the connection reader", -39)
             taskMgr.doMethodLater(HEARTBEAT_PLAYER, self.messager.heartbeat, "Send heartbeat")
         else:
             Alert(-2)

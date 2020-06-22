@@ -1,22 +1,20 @@
 from direct.directnotify.DirectNotifyGlobal import directNotify
-from datagrams import *
+from communications.datagrams import *
 from objects.player import Player
 from objects.ai import AI
 from direct.task.TaskManagerGlobal import taskMgr, Task
-from codes import MAX_PLAYERS
+from communications.codes import MAX_PLAYERS
 import random
 
 
 class Game:
     notify = directNotify.newCategory("game")
 
-    def __init__(self, _gid, _cwriter, _on_delete, _on_remove_player, open_to_public=1):
-        self.notify.debug("Creating game {}".format(_gid))
+    def __init__(self, gid, msgr, open_to_public=1):
+        self.notify.debug("Creating game {}".format(gid))
 
-        self.cWriter = _cwriter
-        self.gid = _gid
-        self.on_delete = _on_delete
-        self.on_remove_player = _on_remove_player
+        self.gid = gid
+        self.msgr = msgr
         self.open = open_to_public
         self.started = False
         self.day = True
@@ -25,6 +23,14 @@ class Game:
         self.killer = None
         self.players = []
 
+    def check_if_available(self):
+        """
+        Checks requirements for a game to be available to join
+        :return: if available
+        :rtype: bool
+        """
+        return self.open and not self.started
+
     def delete_this_game(self):
         # end tasks
         taskMgr.remove("DayNight Cycle {}".format(self.gid))
@@ -32,12 +38,20 @@ class Game:
         # tell clients
         self.message_all_players(dg_kick_from_game(GAME_DELETED))
 
-        self.on_delete(self.gid)
+        # tell msgr to delete this game
+        self.msgr.delete_game(self.gid)
 
-    def add_player(self, connection, pid):
+    def add_player(self, pid):
+        """
+        Adds a player using the player's ID
+        :param pid: The Player ID you want to add
+        :type pid: int
+        :return: if successful
+        :rtype: bool
+        """
         self.notify.debug("Adding player to game")
 
-        p = Player(self.generate_local_id(), _connection=connection, _pid=pid)
+        p = Player(self.generate_local_id(), pid=pid)
         self.players.append(p)
         self.message_all_players(dg_add_player(p.get_local_id()))
 
@@ -47,10 +61,26 @@ class Game:
                 self.message_player(dg_update_player_name(existing.get_local_id(), existing.get_name()),
                                     p.get_local_id())
 
+        return True
+
     def remove_player(self, pid):
-        self.remove_player_from_local_id(self.get_local_id_from_pid(pid))
+        """
+        Removes player using their Player ID
+        :param pid: The Player ID you want to remove
+        :type pid: int
+        :return: if successful
+        :rtype: bool
+        """
+        return self.remove_player_from_local_id(self.get_local_id_from_pid(pid))
 
     def remove_player_from_local_id(self, local_id):
+        """
+        Removes player using their Local ID
+        :param local_id:
+        :type local_id:
+        :return:
+        :rtype:
+        """
         self.notify.debug("Removing player {} from game {}".format(local_id, self.gid))
 
         # needs to be done before they're removed bc we use their data
@@ -62,6 +92,7 @@ class Game:
         self.players.remove(self.get_player_from_local_id(local_id))
 
         if not self.any_real_players():
+            print("DELETE GAME 3")
             self.delete_this_game()
             return
 
@@ -278,7 +309,7 @@ class Game:
                     if to_remove.ai:
                         self.remove_player_from_local_id(victim)
                     else:
-                        self.on_remove_player(self.get_pid_from_local_id(victim), KILLED)
+                        self.msgr.remove_player_from_game(self.get_pid_from_local_id(victim), KILLED)
                 else:
                     self.red_room = 0
                     self.message_killer(dg_kill_failed_empty_room())
@@ -288,11 +319,13 @@ class Game:
 
         # check if need to end game
         if not self.any_real_players():
+            print("EXECUTING DELETE GAME 2")
             self.notify.debug("No non-ai players in game {}".format(self.gid))
             self.delete_this_game()
             return Task.done
 
         if self.day and self.day_count > MAX_DAYS:
+            print("Executing DELETE GAME 1")
             self.notify.debug("Maximum day_count reached: {}/{}".format(self.day_count, MAX_DAYS))
             self.delete_this_game()
             return Task.done
@@ -325,9 +358,21 @@ class Game:
                 self.message_player(dg, p.get_local_id())
 
     def message_player(self, dg, local_id):
+        """
+        Sends a message to a player based off their Local ID
+        :param dg: Datagram to send
+        :type dg: PyDatagram
+        :param local_id: The player's local ID
+        :type local_id: int
+        :return: if successful
+        :rtype: bool
+        """
         p = self.get_player_from_local_id(local_id)
-        if not p.ai:
-            self.cWriter.send(dg, p.get_connection())
+
+        if not p.get_ai():
+            return self.msgr.send_message(p.get_pid(), dg)
+
+        return False
 
     def message_killer(self, dg):
         self.message_player(dg, self.killer)

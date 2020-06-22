@@ -8,18 +8,24 @@ from direct.task.TaskManagerGlobal import Task
 from panda3d.core import NetDatagram
 
 
-# this class takes and decodes messages
+"""
+
+This class receives and decodes messages
+
+"""
+
+
 class Messager:
 
     # notify
-    notify = directNotify.newCategory("lp")
+    notify = directNotify.newCategory("msgr")
 
     def __init__(self, father):
         self.father = father
 
-    def received_code(self, taskdata):
+    def check_for_message(self, taskdata):
         """
-        Called when the client is given a datagram.
+        Called repeatedly to check if any new messages from server
         This gets the information from said datagram and calls whatever function necessary
         @param self
         @param taskdata
@@ -76,14 +82,12 @@ class Messager:
     def game_received(self, iterator):
         """
         Called when server gives client a game
-            uint8 - player_count: the amount of players in the lobby
             uint8 - vote_count: the amount of votes to start the game
         @return If successful
         @rtype bool
         """
         # check if valid
         try:
-            player_count = iterator.getUint8()
             vote_count = iterator.getUint8()
         except AssertionError:
             self.notify.warning("Invalid DELIVER_GAME")
@@ -92,7 +96,7 @@ class Messager:
         # if father is on main menu, send them to lobby
         if self.father.active_level == MAINMENU:
             self.father.set_active_level(LOBBY)
-            self.father.levels[LOBBY].update_player()
+            self.father.levels[LOBBY].update_vote_count(vote_count)
         else:
             self.notify.warning("Received a game while in a game")
 

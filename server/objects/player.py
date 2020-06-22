@@ -1,29 +1,37 @@
 import random
-from codes import ROOMS
+from communications.codes import ROOMS
 from names import NAMES
 
 
 class Player:
-    def __init__(self, _local_id, _connection=None, _pid=None, _ai=False):
+    def __init__(self, local_id, pid=None, ai=False):
         self.voted_to_start = False
         self.room = None
         self.blocking = None
-        self.connection = _connection
-        self.pid = _pid
+        self.pid = pid
         self.alive = True
-        self.ai = _ai
-        self.local_id = _local_id
+        self.ai = ai
+        self.local_id = local_id
         self.name = "???"
         self.wants_to_kill = False
 
     def get_pid(self):
+        """
+        Gets the player's PID.
+        This is used because this number is associated with their connection, meaning you need this
+            to send messages.
+        :return: Player ID
+        :rtype: int
+        """
         return self.pid
 
     def get_local_id(self):
+        """
+        Get the player's Local ID
+        :return: Local ID
+        :rtype: int
+        """
         return self.local_id
-
-    def get_connection(self):
-        return self.connection
 
     # self.name
     def set_name(self, name):
@@ -72,3 +80,7 @@ class Player:
 
     def get_alive(self):
         return self.alive
+
+    # self.ai
+    def get_ai(self):
+        return self.ai

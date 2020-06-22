@@ -5,8 +5,8 @@ from objects.player import Player
 class AI(Player):
     notify = directNotify.newCategory("ai")
 
-    def __init__(self, _local_id):
-        Player.__init__(self, _local_id, _ai=True)
+    def __init__(self, local_id):
+        Player.__init__(self, local_id, ai=True)
         self.set_random_name()
 
     def get_connection(self):

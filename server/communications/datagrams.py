@@ -1,6 +1,6 @@
 # creates datagrams to send to server
 from direct.distributed.PyDatagram import PyDatagram
-from codes import *
+from communications.codes import *
 
 
 # General
@@ -21,7 +21,6 @@ def dg_deliver_pid(pid):
 def dg_deliver_game(game):
     dg = PyDatagram()
     dg.addUint8(DELIVER_GAME)
-    dg.addUint8(game.get_player_count())
     dg.addUint8(game.get_vote_count())
     return dg
 
