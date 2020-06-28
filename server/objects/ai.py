@@ -7,13 +7,14 @@ class AI(Player):
 
     def __init__(self, local_id):
         Player.__init__(self, local_id, ai=True)
-        self.set_random_name()
-
-    def get_connection(self):
-        self.notify.warning("Someone request AI's connection...")
-        return False
+        self.random_name()
 
     # this is ran going into night
     def night_run(self):
+        """
+        What to do upon going to night
+        :return:
+        :rtype:
+        """
         # select room
         self.random_room()

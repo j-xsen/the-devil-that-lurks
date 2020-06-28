@@ -314,7 +314,7 @@ class Messager:
             self.notify.warning("Invalid NUM_IN_ROOM")
             return False
 
-        self.father.levels[NIGHT].set_players_here(num)
+        self.father.levels[NIGHT].players_here = num
 
         return True
 

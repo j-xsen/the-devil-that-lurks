@@ -39,8 +39,8 @@ class Game:
         """
         p = self.get_player(local_id=local_id)
 
-        if not p.get_ai():
-            return self.msgr.send_message(p.get_pid(), dg)
+        if not p.ai:
+            return self.msgr.send_message(p.pid, dg)
 
         return False
 
@@ -54,7 +54,7 @@ class Game:
         """
         for p in self.players:
             if not p.ai:
-                if not self.message_player(dg, p.get_local_id()):
+                if not self.message_player(dg, p.local_id):
                     return False
         return True
 
@@ -94,8 +94,8 @@ class Game:
         :rtype: int
         """
         for p in self.players:
-            if p.get_pid() == pid:
-                return p.get_local_id()
+            if p.pid == pid:
+                return p.local_id
         return False
 
     def get_player(self, pid=-1, local_id=-1):
@@ -115,7 +115,7 @@ class Game:
             local_id = self.get_local_id_from_pid(pid)
 
         for p in self.players:
-            if p.get_local_id() == local_id:
+            if p.local_id == local_id:
                 return p
         return False
 
@@ -150,13 +150,13 @@ class Game:
 
         p = Player(self.generate_local_id(), pid=pid)
         self.players.append(p)
-        self.message_all_players(dg_add_player(p.get_local_id()))
+        self.message_all_players(dg_add_player(p.local_id))
 
         # send all players to the new player
         for existing in self.players:
             if existing != p:
-                self.message_player(dg_update_player_name(existing.get_local_id(), existing.get_name()),
-                                    p.get_local_id())
+                self.message_player(dg_update_player_name(existing.local_id, existing.name),
+                                    p.local_id)
 
         return True
 
@@ -208,7 +208,7 @@ class Game:
         """
         # TODO validate name
         self.notify.debug("changing name to {}".format(name))
-        self.get_player(pid=pid).set_name(name)
+        self.get_player(pid=pid).name = name
 
         # tell players
         return self.message_all_players(dg_update_player_name(self.get_local_id_from_pid(pid), name))
@@ -224,7 +224,7 @@ class Game:
         if not self.started:
             p = self.get_player(pid=pid)
             if p:
-                p.set_voted_to_start(True)
+                p.voted_to_start = True
 
                 self.verify_vote_to_start()
             else:
@@ -245,7 +245,7 @@ class Game:
         # make sure it's day
         if self.day:
             # set their room
-            self.get_player(pid=pid).set_room(room)
+            self.get_player(pid=pid).room = room
             self.notify.info("Set {} room to {}".format(pid, room))
             return True
         else:
@@ -264,7 +264,7 @@ class Game:
         """
         if self.killer == self.get_local_id_from_pid(pid):
             player = self.get_player(pid=pid)
-            player.set_wants_to_kill(choice)
+            player.wants_to_kill = choice
             return True
         else:
             self.notify.warning("player {} tried to set kill, but they're not the killer".format(pid))
@@ -273,9 +273,6 @@ class Game:
     """
     # DATA RETRIEVAL
     """
-
-    def get_gid(self):
-        return self.gid
 
     def get_player_count(self):
         return len(self.players)
@@ -288,7 +285,7 @@ class Game:
         """
         count = 0
         for p in self.players:
-            if p.get_voted_to_start():
+            if p.voted_to_start:
                 count += 1
         return count
 
@@ -305,11 +302,11 @@ class Game:
         in_room = []
         for p in self.players:
             if include_killer:
-                if p.get_room() == room:
-                    in_room.append(p.get_local_id())
+                if p.room == room:
+                    in_room.append(p.local_id)
             else:
-                if p.get_room() == room and p.get_local_id() != self.killer:
-                    in_room.append(p.get_local_id())
+                if p.room == room and p.local_id != self.killer:
+                    in_room.append(p.local_id)
         return in_room
 
     def get_local_id_pool(self):
@@ -320,7 +317,7 @@ class Game:
         """
         local_ids = []
         for p in self.players:
-            local_ids.append(p.get_local_id())
+            local_ids.append(p.local_id)
         return local_ids
 
     def any_real_players(self):
@@ -374,8 +371,8 @@ class Game:
 
         # fix people who haven't updated their name
         for p in self.players:
-            if p.get_name() == "???":
-                p.set_random_name()
+            if p.name == "???":
+                p.random_name()
 
         # create AI
         while self.get_player_count() < MAX_PLAYERS:
@@ -385,7 +382,7 @@ class Game:
         # assign killer
         # TODO
         #   make it random and not just the first player - but i need to debug
-        self.killer = self.players[0].get_local_id()
+        self.killer = self.players[0].local_id
 
         # tell players
         self.message_all_players(dg_start_game(self))
@@ -411,9 +408,9 @@ class Game:
 
             # check if killer wants to kill
             killer = self.get_player(local_id=self.killer)
-            if killer.get_wants_to_kill():
+            if killer.wants_to_kill:
                 # KILL
-                self.red_room = killer.get_room()
+                self.red_room = killer.room
                 possible_victims = self.get_players_in_room(self.red_room, False)
                 if len(possible_victims) > 0:
                     # select random
@@ -440,10 +437,10 @@ class Game:
 
             # reset player rooms
             for p in self.players:
-                p.set_room(None)
+                p.room = None
 
             # reset killer's choice
-            killer.set_wants_to_kill(False)
+            killer.wants_to_kill = False
         else:
             for p in self.players:
                 # run ai
@@ -451,12 +448,12 @@ class Game:
                     p.night_run()
                 else:
                     # make sure every one's picked a room, if they haven't give them a random one
-                    if not p.get_room():
+                    if not p.room:
                         p.random_room()
 
                 # send them the amount of people in their room
-                self.message_player(dg_how_many_in_room(len(self.get_players_in_room(p.get_room(), True))),
-                                    p.get_local_id())
+                self.message_player(dg_how_many_in_room(len(self.get_players_in_room(p.room, True))),
+                                    p.local_id)
 
         # tell players
         if self.day:

@@ -34,8 +34,5 @@ class NightLevel(Level):
         self.timer = Timer()
         self.timer.start()
 
-    def set_players_here(self, num_here):
-        self.players_here = num_here
-
     def kill(self, status):
         self.father.write(dg_set_kill(self.father.pid, status))

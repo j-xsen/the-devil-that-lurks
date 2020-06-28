@@ -54,7 +54,7 @@ class MainMenuLevel(Level):
                                          self.sprites.find('**/mm-play-hover'),
                                          self.sprites.find('**/mm-play-disabled')),
                                    relief=None, geom_scale=(1, 0, 0.3), geom_pos=(0, 0, 0.1),
-                                   command=self.goto_singleplayer)
+                                   command=self.goto_play)
 
         if not self.father.check_connection():
             play_button["state"] = DGG.DISABLED
@@ -83,7 +83,7 @@ class MainMenuLevel(Level):
         self.gui["btn_settings_back"] = back_button
         self.images["img_settings"] = settings_image
 
-    def goto_singleplayer(self):
+    def goto_play(self):
         if self.father.my_connection:
             self.father.write(dg_request_game(self.father.pid))
         else:

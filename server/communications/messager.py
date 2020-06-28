@@ -115,7 +115,7 @@ class Messager:
         game = Game(gid, self)
         self.games[gid] = game
 
-        self.add_player_to_game(pid, game.get_gid())
+        self.add_player_to_game(pid, game.gid)
 
         return True
 
@@ -132,7 +132,7 @@ class Messager:
         # remove gid from players
         for p in self.games[gid].players:
             if not p.ai:
-                self.active_connections[p.get_pid()]["gid"] = None
+                self.active_connections[p.pid]["gid"] = None
 
         del self.games[gid]
 
@@ -165,7 +165,7 @@ class Messager:
         :rtype: bool
         """
         self.notify.debug("removing player {}".format(pid))
-        self.games[self.active_connections[pid]["gid"]].remove_player_from_pid(pid)
+        self.games[self.active_connections[pid]["gid"]].remove_player(pid=pid)
         self.active_connections[pid]["gid"] = None
         self.cWriter.send(dg_kick_from_game(reason), self.active_connections[pid]["connection"])
         return True

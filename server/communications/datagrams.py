@@ -91,8 +91,8 @@ def dg_start_game(game):
     dg.addUint8(START_GAME)
 
     for p in game.players:
-        dg.addString(p.get_name())
-        dg.addUint8(p.get_local_id())
+        dg.addString(p.name)
+        dg.addUint8(p.local_id)
 
     return dg
 
