@@ -1,5 +1,5 @@
 from communications.codes import *
-from communications.datagrams import dg_deliver_pid, dg_deliver_game, dg_kick_from_game
+from communications.datagrams import dg_deliver_pid, dg_deliver_game, dg_kick_from_game, dg_kill_connection
 from direct.directnotify.DirectNotifyGlobal import directNotify
 from direct.task.TaskManagerGlobal import Task
 from config import *
@@ -168,6 +168,24 @@ class Messager:
         self.games[self.active_connections[pid]["gid"]].remove_player(pid=pid)
         self.active_connections[pid]["gid"] = None
         self.cWriter.send(dg_kick_from_game(reason), self.active_connections[pid]["connection"])
+        return True
+
+    def remove_player(self, pid):
+        """
+        remove a player from The System
+        :param pid: the player ID
+        :type pid: int
+        :return: if successful
+        :rtype: bool
+        """
+        self.notify.debug("remove_player PID: {}".format(pid))
+
+        if self.active_connections[pid]["gid"]:
+            self.games[self.active_connections[pid]["gid"]].remove_player(pid=pid)
+
+        self.cWriter.send(dg_kill_connection(), self.active_connections[pid]["connection"])
+        del self.active_connections[pid]
+
         return True
 
     def send_message(self, pid, dg):

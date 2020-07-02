@@ -5,7 +5,7 @@ from direct.gui.DirectGui import DirectButton
 from direct.gui.OnscreenText import OnscreenText
 from communications.datagrams import dg_set_room
 from communications.codes import KITCHEN, LIVING_ROOM, BEDROOM, PORCH, DINING_ROOM
-from objects.timer_old import Timer
+from objects.timer import Timer
 from panda3d.core import TextNode
 
 
@@ -94,14 +94,14 @@ class DayLevel(Level):
         self.gui["btn_dining_room"] = btn_dining_room
 
         # day count
-        txt_day_number = OnscreenText(text="Day: {}".format(self.father.day), pos=(0.75, 0.75),
+        txt_day_number = OnscreenText(text="Day: {}".format(self.father.day), pos=(-0.75, 0.75),
                                       scale=0.2, fg=(1, 1, 1, 1))
 
         self.text["txt_day_number"] = txt_day_number
 
         # timer
-        self.timer = Timer()
-        self.timer.start()
+        self.timer = Timer(0)
+        #self.timer.start()
 
     def set_room(self, room):
         self.father.write(dg_set_room(self.father.pid, room))
