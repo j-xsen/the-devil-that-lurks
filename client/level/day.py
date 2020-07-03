@@ -101,7 +101,6 @@ class DayLevel(Level):
 
         # timer
         self.timer = Timer(0)
-        #self.timer.start()
 
     def set_room(self, room):
         self.father.write(dg_set_room(self.father.pid, room))

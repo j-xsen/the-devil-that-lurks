@@ -13,6 +13,7 @@ from communications.codes import *
 from father import Father
 from communications.messager import Messager
 from objects.alert import Alert
+from level.codes import *
 
 from config import *
 
@@ -51,7 +52,8 @@ class Client(ShowBase):
         self.connect()
 
     def debug(self):
-        testing_alert = Alert(-1)
+        # testing_alert = Alert(-1)
+        self.father.set_active_level(NIGHT)
 
     def connect(self):
         port_address = SERVER_PORT

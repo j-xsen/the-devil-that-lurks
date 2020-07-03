@@ -1,7 +1,7 @@
 from level.level import Level
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.DirectGui import DirectCheckButton
-from objects.timer_old import Timer
+from objects.timer import Timer
 from communications.datagrams import dg_set_kill
 
 
@@ -31,8 +31,7 @@ class NightLevel(Level):
             self.gui["btn_kill"] = btn_kill
 
         # timer
-        self.timer = Timer()
-        self.timer.start()
+        self.timer = Timer(2)
 
     def kill(self, status):
         self.father.write(dg_set_kill(self.father.pid, status))
