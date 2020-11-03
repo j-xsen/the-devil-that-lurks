@@ -2,7 +2,6 @@
 from direct.distributed.PyDatagram import PyDatagram
 from communications.codes import *
 
-
 # GENERAL
 def dg_send_heartbeat(pid):
     dg = PyDatagram()
