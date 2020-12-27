@@ -16,12 +16,8 @@ from objects.alert import Alert
 from level.codes import *
 
 from config import *
-
-loadPrcFileData("", "\n".join(["notify-level-lp debug",
-                               "notify-level-father debug",
-                               "notify-level-gui-alert debug",
-                               "notify-level-msgr debug"]))
-
+from panda3d.core import loadPrcFile
+loadPrcFile("config/Config.prc")
 
 class Client(ShowBase):
     # notify
@@ -41,9 +37,6 @@ class Client(ShowBase):
 
         # create father
         self.father = Father(self.cWriter, self.cManager, self.cReader)
-
-        # create messager
-        self.messager = Messager(self.father)
 
         # inputs
         self.accept('escape', self.debug)
@@ -69,8 +62,8 @@ class Client(ShowBase):
             self.cReader.addConnection(my_connection)
 
             # tasks
-            taskMgr.add(self.messager.check_for_message, "Poll the connection reader", -39)
-            taskMgr.doMethodLater(HEARTBEAT_PLAYER, self.messager.heartbeat, "Send heartbeat")
+            taskMgr.add(self.father.messager.check_for_message, "Poll the connection reader", -39)
+            taskMgr.doMethodLater(HEARTBEAT_PLAYER, self.father.messager.heartbeat, "Send heartbeat")
         else:
             Alert(-2)
             self.father.failed_to_connect()

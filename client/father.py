@@ -10,6 +10,7 @@ from panda3d.core import Filename
 import sys
 import atexit
 from level.codes import *
+from communications.messager import Messager
 
 
 # The Father object holds all UIs and Levels
@@ -18,6 +19,9 @@ class Father:
     def __init__(self, _cWriter, _cManager, _cReader):
         # notify
         self.notify = directNotify.newCategory("father")
+
+        # so we can send messages
+        self.messager = Messager(_cWriter, _cManager, _cReader, self)
 
         # Create stuff we don't want to keep recreating because of their permanence
         self.rooms = []
@@ -43,14 +47,9 @@ class Father:
         self.active_level = MAINMENU
         self.levels[self.active_level].create()
 
-        # so we can send messages
-        self.my_connection = None
-        self.cWriter = _cWriter
-        self.cManager = _cManager
-        self.cReader = _cReader
-        self.pid = None
-
         atexit.register(self.exit_game)
+
+        self.notify.debug("father init'd")
 
     def set_active_level(self, level, day_count=-1):
         """
@@ -118,16 +117,16 @@ class Father:
         Use this to close the game.
         Closes connection and tells server we're leaving
         """
-        if not self.my_connection:
+        if not self.messager.my_connection or not self.messager.pid:
             sys.exit()
 
         # tell server
-        self.write(dg_goodbye(self.pid))
-        self.cManager.closeConnection(self.my_connection)
+        self.write(dg_goodbye(self.messager.pid))
+        self.messager.cManager.closeConnection(self.messager.my_connection)
         sys.exit()
 
     def set_connection(self, connection):
-        self.my_connection = connection
+        self.messager.my_connection = connection
 
         if self.active_level == MAINMENU:
             self.levels[MAINMENU].connected()
@@ -147,7 +146,7 @@ class Father:
         @rtype: bool
         """
         try:
-            if self.my_connection:
+            if self.messager.my_connection:
                 return True
         except AttributeError:
             return False
@@ -155,15 +154,6 @@ class Father:
 
     def write(self, dg):
         """
-        Sends message to server
-        @param dg: datagram you want to send
-        @type dg: direct.distributed.PyDatagram.PyDatagram
-        @return: if message sends
-        @rtype: bool
+        forwards this the messager
         """
-        if self.my_connection:
-            return self.cWriter.send(dg, self.my_connection)
-        else:
-            Alert(-2)
-            self.notify.warning("No connection to send message to!")
-        return False
+        return self.messager.write(dg)

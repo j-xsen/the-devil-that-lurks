@@ -84,8 +84,8 @@ class MainMenuLevel(Level):
         self.images["img_settings"] = settings_image
 
     def goto_play(self):
-        if self.father.my_connection:
-            self.father.write(dg_request_game(self.father.pid))
+        if self.messager.my_connection:
+            self.messager.write(dg_request_game(self.messager.pid))
         else:
             Alert(-2)
             self.failed_to_connect()

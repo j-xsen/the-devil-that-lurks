@@ -36,10 +36,10 @@ class LobbyLevel(Level):
         self.gui["entry_name"] = entry_name
 
     def vote_to_start(self):
-        self.father.write(dg_vote_to_start(self.father.pid))
+        self.messager.write(dg_vote_to_start(self.messager.pid))
 
     def leave(self):
-        self.father.write(dg_leave_lobby(self.father.pid))
+        self.messager.write(dg_leave_lobby(self.messager.pid))
 
     def update_player(self):
         """
@@ -78,4 +78,4 @@ class LobbyLevel(Level):
         self.text["txt_votes"].text = "{}/{}".format(votes, self.players_count)
 
     def update_name(self, name):
-        self.father.write(dg_update_name(self.father.pid, name))
+        self.messager.write(dg_update_name(self.messager.pid, name))

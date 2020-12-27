@@ -34,4 +34,4 @@ class NightLevel(Level):
         self.timer = Timer(2)
 
     def kill(self, status):
-        self.father.write(dg_set_kill(self.father.pid, status))
+        self.messager.write(dg_set_kill(self.messager.pid, status))

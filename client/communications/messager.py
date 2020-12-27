@@ -18,10 +18,17 @@ This class receives and decodes messages
 class Messager:
 
     # notify
-    notify = directNotify.newCategory("msgr")
+    notify = directNotify.newCategory("messager")
 
-    def __init__(self, father):
-        self.father = father
+    def __init__(self, _cWriter, _cManager, _cReader, _father):
+        self.notify.setDebug(True)
+        self.cWriter = _cWriter
+        self.cManager = _cManager
+        self.cReader = _cReader
+        self.my_connection = None
+        self.pid = None
+        self.father = _father
+        self.notify.debug("messager init")
 
     def check_for_message(self, taskdata):
         """
@@ -30,9 +37,9 @@ class Messager:
         @param self
         @param taskdata
         """
-        if self.father.cReader.dataAvailable():
+        if self.cReader.dataAvailable():
             dg = NetDatagram()
-            if self.father.cReader.getData(dg):
+            if self.cReader.getData(dg):
                 iterator = PyDatagramIterator(dg)
 
                 try:
@@ -51,8 +58,16 @@ class Messager:
         """
         Called on a regular interval to tell the server we're still here
         """
-        self.father.write(dg_send_heartbeat(self.father.pid))
+        self.write(dg_send_heartbeat(self.pid))
         return Task.again
+
+    def write(self, dg):
+        if self.my_connection:
+            return self.cWriter.send(dg, self.my_connection)
+        else:
+            Alert(-2)
+            self.notify.warning("No connection to send message to!")
+        return False
 
     #
     # MESSAGE CODES
@@ -65,7 +80,7 @@ class Messager:
         @return If successful
         @rtype bool
         """
-        if not self.father.pid:
+        if not self.pid:
             try:
                 pid = iterator.getUint16()
             except AssertionError:
@@ -73,7 +88,7 @@ class Messager:
                 return False
 
             self.notify.debug("Received PID: {}".format(pid))
-            self.father.pid = pid
+            self.pid = pid
         else:
             self.notify.warning("Received PID after already receiving one")
 

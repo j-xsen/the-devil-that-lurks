@@ -103,4 +103,4 @@ class DayLevel(Level):
         self.timer = Timer(0)
 
     def set_room(self, room):
-        self.father.write(dg_set_room(self.father.pid, room))
+        self.messager.write(dg_set_room(self.messager.pid, room))

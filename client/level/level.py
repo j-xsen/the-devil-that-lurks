@@ -7,6 +7,7 @@ class Level:
         self.multifiles = multifiles
         self.name = name
         self.father = father
+        self.messager = father.messager
         self.actors = {}
         self.lights = {}
         self.sprites = None
