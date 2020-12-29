@@ -1,7 +1,7 @@
 from communications.codes import *
 from communications.datagrams import dg_deliver_pid, dg_deliver_game, dg_kick_from_game, dg_kill_connection
 from direct.directnotify.DirectNotifyGlobal import directNotify
-from direct.task.TaskManagerGlobal import Task
+from direct.task import Task
 from config import *
 from objects.game import Game
 
@@ -62,7 +62,7 @@ class Messager:
                 self.notify.info("New connection")
                 new_connection = new_connection.p()
 
-                pid = RandomNumGen(int(round(time.time() * 1000))).randint(0, 65535)
+                pid = self.create_pid()
 
                 self.active_connections[pid] = {"connection": new_connection,
                                                 "gid": None,
@@ -95,6 +95,17 @@ class Messager:
                 else:
                     self.notify.warning("Invalid msg_id: {}".format(msg_id))
         return Task.cont
+
+    def check_heartbeats(self, task):
+        self.notify.debug("Checking heartbeats")
+        for pid in self.active_connections:
+            connection = self.active_connections[pid]
+            if connection["heartbeat"]:
+                connection["heartbeat"] = False
+            else:
+                self.notify.debug(f"Player {connection['pid']} has no heartbeat!")
+                self.remove_player(connection["pid"], NO_HEART)
+        return task.again
 
     """
     # Utility
@@ -157,20 +168,17 @@ class Messager:
     def remove_player_from_game(self, pid, reason):
         """
         Removes a player from a game
-        :param pid: the player ID of the player joining the game
+        :param pid: the player ID of the player leaving the game
         :type pid: int
         :param reason: the reason they're being removed from the game (see 3- codes)
         :type reason: int
-        :return: if successful
-        :rtype: bool
         """
         self.notify.debug("removing player {}".format(pid))
         self.games[self.active_connections[pid]["gid"]].remove_player(pid=pid)
         self.active_connections[pid]["gid"] = None
         self.cWriter.send(dg_kick_from_game(reason), self.active_connections[pid]["connection"])
-        return True
 
-    def remove_player(self, pid):
+    def remove_player(self, pid, reason):
         """
         remove a player from The System
         :param pid: the player ID
@@ -180,8 +188,12 @@ class Messager:
         """
         self.notify.debug("remove_player PID: {}".format(pid))
 
+        if pid not in self.active_connections:
+            self.notify.warning(f"Requested to remove non-existent player PID {pid}")
+            return False
+
         if self.active_connections[pid]["gid"]:
-            self.games[self.active_connections[pid]["gid"]].remove_player(pid=pid)
+            self.remove_player_from_game(pid, reason)
 
         self.cWriter.send(dg_kill_connection(), self.active_connections[pid]["connection"])
         del self.active_connections[pid]
@@ -202,6 +214,19 @@ class Messager:
             self.notify.warning("Requested to send message with no PID")
             return False
         self.cWriter.send(dg, self.active_connections[pid]["connection"])
+
+    def create_pid(self):
+        """
+        Create a new PID
+        :return: a new, unique PID
+        :rtype: int
+        """
+        pid = None
+        while not pid:
+            temp_pid = RandomNumGen(int(round(time.time() * 1000))).randint(0, 65535)
+            if temp_pid not in self.active_connections:
+                pid = temp_pid
+        return pid
 
     """
     # Message Codes
@@ -339,6 +364,7 @@ class Messager:
             self.notify.warning("Received invalid HEARTBEAT")
             return False
 
+        self.notify.debug(f"Received heartbeat from PID {pid}")
         self.active_connections[pid]["heartbeat"] = True
         return True
 
@@ -355,7 +381,7 @@ class Messager:
             self.notify.warning("Received invalid GOODBYE")
             return False
 
-        return self.remove_player(pid)
+        return self.remove_player(pid, CLIENT_LOG_OFF)
 
     def update_name(self, iterator):
         """
