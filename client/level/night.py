@@ -26,7 +26,7 @@ class NightLevel(Level):
         self.text["txt_num_here"] = txt_num_here
 
         # Kill button
-        if self.father.killer:
+        if self.level_holder.killer:
             btn_kill = DirectCheckButton(text="Kill", scale=0.1, command=self.kill)
             self.gui["btn_kill"] = btn_kill
 

@@ -8,6 +8,7 @@ import time
 from communications.datagrams import *
 from objects.game import Game
 from config import *
+from panda3d.core import AntialiasAttrib
 from communications.messager import Messager
 
 from panda3d.core import loadPrcFile
@@ -20,6 +21,9 @@ class Server(ShowBase):
 
     def __init__(self):
         ShowBase.__init__(self)
+        ShowBase.set_background_color(self, 0.08, 0.08, 0.08, 1)
+        render.setAntialias(AntialiasAttrib.MAuto)
+        self.disableMouse()
 
         self.messager = Messager()
 

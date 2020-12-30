@@ -7,6 +7,7 @@ from direct.directnotify.DirectNotifyGlobal import directNotify
 from communications.datagrams import dg_goodbye
 from panda3d.core import VirtualFileSystem
 from panda3d.core import Filename
+from objects.player import Player
 import sys
 import atexit
 from level.codes import *
@@ -14,21 +15,20 @@ from communications.messager import Messager
 
 
 # The Father object holds all UIs and Levels
-class Father:
+class LevelHolder:
 
     def __init__(self, _cWriter, _cManager, _cReader):
         # notify
-        self.notify = directNotify.newCategory("father")
+        self.notify = directNotify.newCategory("level_holder")
 
         # so we can send messages
         self.messager = Messager(_cWriter, _cManager, _cReader, self)
 
         # Create stuff we don't want to keep recreating because of their permanence
-        self.rooms = []
         self.players = {}
-        self.dead = []
         self.day = 0
         self.killer = False
+        self.red_room = 0
         self.vfs = VirtualFileSystem.getGlobalPtr()
 
         # these are used in nearly every level, just keep it loaded
@@ -49,18 +49,15 @@ class Father:
 
         atexit.register(self.exit_game)
 
-        self.notify.debug("father init'd")
+        self.notify.debug("level_holder init")
 
-    def set_active_level(self, level, day_count=-1):
+    def set_active_level(self, level):
         """
         Set the active level
         @param level: the level's code
         @param day_count: (opt) if day_count has been updated
         @type level: int
         """
-        if day_count != -1:
-            self.day = day_count
-
         self.levels[self.active_level].destroy()
 
         base.camera.setPos((0, 0, 0))
@@ -70,13 +67,14 @@ class Father:
 
         self.levels[self.active_level].create()
 
-    def add_player(self, local_id):
+    def add_player(self, local_id, name):
         """
         Adds a player to the self.players dict
-        @param local_id: the local id of the new player
-        @type local_id: int
         """
-        self.players[local_id] = {"name": "???"}
+        new_player = Player(local_id, name=name)
+        self.players[local_id] = new_player
+
+        self.notify.debug(f"Added local player {local_id}")
 
         if self.active_level == LOBBY:
             self.levels[LOBBY].update_player()
@@ -99,8 +97,9 @@ class Father:
         @param new_name: The player's new name
         @type new_name: string
         """
+        self.notify.debug(f"Changing name of {local_id} to {new_name}")
         if self.active_level == LOBBY:
-            self.players[local_id] = {"name": new_name}
+            self.players[local_id].name = new_name
             self.levels[LOBBY].update_player()
 
     def reset_game_vars(self):
@@ -108,7 +107,6 @@ class Father:
         Erases all game variables so you can start fresh
         """
         self.players = {}
-        self.dead = []
         self.day = 0
         self.killer = False
 
@@ -117,6 +115,12 @@ class Father:
         Use this to close the game.
         Closes connection and tells server we're leaving
         """
+        VirtualFileSystem.getGlobalPtr().unmount("mf/pawns.mf")
+        VirtualFileSystem.getGlobalPtr().unmount("mf/timer.mf")
+
+        for level in self.levels:
+            self.levels[level].destroy()
+
         if not self.messager.my_connection or not self.messager.pid:
             sys.exit()
 

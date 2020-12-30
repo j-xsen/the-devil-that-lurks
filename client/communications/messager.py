@@ -20,14 +20,14 @@ class Messager:
     # notify
     notify = directNotify.newCategory("messager")
 
-    def __init__(self, _cWriter, _cManager, _cReader, _father):
+    def __init__(self, _cWriter, _cManager, _cReader, level_holder):
         self.notify.setDebug(True)
         self.cWriter = _cWriter
         self.cManager = _cManager
         self.cReader = _cReader
         self.my_connection = None
         self.pid = None
-        self.father = _father
+        self.level_holder = level_holder
         self.notify.debug("messager init")
 
     def check_for_message(self, taskdata):
@@ -109,9 +109,9 @@ class Messager:
             return False
 
         # if father is on main menu, send them to lobby
-        if self.father.active_level == MAINMENU:
-            self.father.set_active_level(LOBBY)
-            self.father.levels[LOBBY].update_vote_count(vote_count)
+        if self.level_holder.active_level == MAINMENU:
+            self.level_holder.set_active_level(LOBBY)
+            self.level_holder.levels[LOBBY].update_vote_count(vote_count)
         else:
             self.notify.warning("Received a game while in a game")
 
@@ -124,7 +124,7 @@ class Messager:
         @return: if successful
         @rtype: bool
         """
-        self.father.set_active_level(MAINMENU)
+        self.level_holder.set_active_level(MAINMENU)
 
         try:
             reason = iterator.getUint8()
@@ -152,14 +152,15 @@ class Messager:
         @return: if successful
         @rtype: bool
         """
-        if self.father.active_level == LOBBY:
+        if self.level_holder.active_level == LOBBY:
             try:
                 new_player_id = iterator.getUint8()
+                name = iterator.getString()
             except AssertionError:
                 self.notify.warning("Invalid add_player")
                 return False
 
-            self.father.add_player(new_player_id)
+            self.level_holder.add_player(new_player_id, name)
         else:
             self.notify.warning("add_player called when not in lobby")
             return False
@@ -172,14 +173,14 @@ class Messager:
         @return: if successful
         @rtype: bool
         """
-        if self.father.active_level == LOBBY:
+        if self.level_holder.active_level == LOBBY:
             try:
                 ex_player_id = iterator.getUint8()
             except AssertionError:
                 self.notify.warning("Invalid remove_player")
                 return False
 
-            self.father.remove_player(ex_player_id)
+            self.level_holder.remove_player(ex_player_id)
         else:
             self.notify.warning("remove_player called when not in lobby")
             return False
@@ -192,14 +193,14 @@ class Messager:
         @return: if successful
         @rtype: bool
         """
-        if self.father.active_level == LOBBY:
+        if self.level_holder.active_level == LOBBY:
             try:
                 vote_count = iterator.getUint8()
             except AssertionError:
                 self.notify.warning("Invalid UPDATE_VOTE_COUNT")
                 return False
 
-            self.father.levels[LOBBY].update_vote_count(vote_count)
+            self.level_holder.levels[LOBBY].update_vote_count(vote_count)
         else:
             self.notify.warning("update_vote_Count called when not in lobby")
             return False
@@ -219,7 +220,7 @@ class Messager:
             self.notify.warning("Invalid update_name")
             return False
 
-        self.father.update_name(local_id, new_name)
+        self.level_holder.update_name(local_id, new_name)
 
     def start_game(self, iterator):
         """
@@ -228,22 +229,8 @@ class Messager:
         @rtype: bool
         """
 
-        # TODO wtf is this
-        if self.father.active_level == LOBBY:
-            players = {}
-            i = 0
-            while i < MAX_PLAYERS:
-                try:
-                    name = iterator.getString()
-                    local_id = iterator.getUint8()
-                    players[local_id] = {"name": name}
-                except AssertionError:
-                    self.notify.warning("Invalid START_GAME")
-                    return False
-                i += 1
-
-            self.father.players = players
-            self.father.set_active_level(DAY)
+        if self.level_holder.active_level == LOBBY:
+            self.level_holder.set_active_level(DAY)
         else:
             self.notify.warning("start_game while not in lobby")
             return False
@@ -256,12 +243,13 @@ class Messager:
         @return: if successful
         @rtype: bool
         """
-        self.father.killer = True
+        self.level_holder.killer = True
         return True
 
     def has_died(self, iterator):
         """
         Called when server tells client that someone has died
+            uint8 - the local_id of the dead person
         @return: if successful
         @rtype: bool
         """
@@ -271,7 +259,7 @@ class Messager:
             self.notify.warning("Invalid HAS_DIED")
             return False
 
-        self.father.dead.append(the_dead)
+        self.level_holder.players[the_dead].alive = False
 
         return True
 
@@ -281,14 +269,16 @@ class Messager:
         @return: if successful
         @rtype: bool
         """
-        if self.father.active_level != MAINMENU:
+        if self.level_holder.active_level != MAINMENU:
             try:
                 day_count = iterator.getUint8()
+                red_room = iterator.getUint8()
             except AssertionError:
                 self.notify.warning("Invalid GOTO_DAY")
                 return False
 
-            self.father.set_active_level(DAY, day_count)
+            self.level_holder.day = day_count
+            self.level_holder.set_active_level(DAY)
         else:
             self.notify.warning("goto_day while not in game")
             return False
@@ -301,8 +291,8 @@ class Messager:
         @return: if successful
         @rtype: bool
         """
-        if self.father.active_level != MAINMENU:
-            self.father.set_active_level(NIGHT)
+        if self.level_holder.active_level != MAINMENU:
+            self.level_holder.set_active_level(NIGHT)
         else:
             self.notify.warning("goto_night while not in game")
             return False
@@ -329,7 +319,9 @@ class Messager:
             self.notify.warning("Invalid NUM_IN_ROOM")
             return False
 
-        self.father.levels[NIGHT].players_here = num
+        self.notify.debug(f"number_in_room num={num}")
+
+        self.level_holder.levels[NIGHT].players_here = num
 
         return True
 

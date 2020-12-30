@@ -17,6 +17,9 @@ from panda3d.core import ConnectionWriter
 from panda3d.core import PointerToConnection, NetAddress, NetDatagram
 from direct.distributed.PyDatagramIterator import PyDatagramIterator
 
+# debug
+from debug.debug_ui import DebugUI
+
 
 """
 
@@ -43,8 +46,10 @@ class Messager:
 
         port_address = SERVER_PORT
         backlog = 1000
-        tcpSocket = self.cManager.openTCPServerRendezvous(port_address, backlog)
-        self.cListener.addConnection(tcpSocket)
+        tcp_socket = self.cManager.openTCPServerRendezvous(port_address, backlog)
+        self.cListener.addConnection(tcp_socket)
+
+        self.debug_ui = DebugUI(self)
 
         return
 
@@ -97,13 +102,12 @@ class Messager:
         return Task.cont
 
     def check_heartbeats(self, task):
-        self.notify.debug("Checking heartbeats")
         for pid in self.active_connections:
             connection = self.active_connections[pid]
             if connection["heartbeat"]:
                 connection["heartbeat"] = False
             else:
-                self.notify.debug(f"Player {connection['pid']} has no heartbeat!")
+                self.notify.info(f"Player {connection['pid']} has no heartbeat!")
                 self.remove_player(connection["pid"], NO_HEART)
         return task.again
 
@@ -159,7 +163,7 @@ class Messager:
         :return: if successful
         :rtype: bool
         """
-        self.notify.debug("adding player {} to game {}".format(pid, gid))
+        self.notify.debug("Adding player {} to game {}".format(pid, gid))
         self.active_connections[pid]["gid"] = gid
         self.send_message(pid, dg_deliver_game(self.games[gid]))
         self.games[gid].add_player(pid)
@@ -181,6 +185,8 @@ class Messager:
     def remove_player(self, pid, reason):
         """
         remove a player from The System
+        :param reason: the reason they're being removed from the game (see 3- codes)
+        :type reason: int
         :param pid: the player ID
         :type pid: int
         :return: if successful
@@ -364,7 +370,6 @@ class Messager:
             self.notify.warning("Received invalid HEARTBEAT")
             return False
 
-        self.notify.debug(f"Received heartbeat from PID {pid}")
         self.active_connections[pid]["heartbeat"] = True
         return True
 
@@ -396,7 +401,7 @@ class Messager:
             self.notify.warning("Received invalid UPDATE_NAME")
             return False
 
-        self.games[self.active_connections[pid]["gid"]].set_name(pid, new_name)
+        self.games[self.active_connections[pid]["gid"]].set_name(pid=pid, name=new_name)
         return True
 
     # Mapping

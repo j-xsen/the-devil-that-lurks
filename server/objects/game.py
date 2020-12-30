@@ -41,6 +41,8 @@ class Game:
 
         if not p.ai:
             return self.msgr.send_message(p.pid, dg)
+        else:
+            self.notify.warning("message_player Attempted to send message to AI")
 
         return False
 
@@ -117,6 +119,7 @@ class Game:
         for p in self.players:
             if p.local_id == local_id:
                 return p
+        self.notify.warning(f"get_player No player with local_id {local_id}")
         return False
 
     """
@@ -155,10 +158,17 @@ class Game:
         # send all players to the new player
         for existing in self.players:
             if existing != p:
-                self.message_player(dg_update_player_name(existing.local_id, existing.name),
+                self.message_player(dg_add_player(existing.local_id, existing.name),
                                     p.local_id)
 
         return True
+
+    def add_ai(self):
+        self.notify.debug(f"Adding AI to {self.gid}")
+
+        p = AI(self.generate_local_id())
+        self.players.append(p)
+        self.message_all_players(dg_add_player(p.local_id, p.name))
 
     def remove_player(self, local_id=-1, pid=-1):
         """
@@ -196,22 +206,24 @@ class Game:
 
         return True
 
-    def set_name(self, pid, name):
+    def set_name(self, local_id=-1, pid=-1, name="???"):
         """
-        Set the player with this PID's name
-        :param pid: the player's PID
-        :type pid: int
-        :param name: the new name
-        :type name: string
+        Set the player's name
         :return: if successful
         :rtype: bool
         """
+        if local_id < 0:
+            if pid < 0:
+                self.notify.warning("set_name No PID or local_id given!")
+            else:
+                local_id = self.get_local_id_from_pid(pid)
+
         # TODO validate name
-        self.notify.debug("changing name to {}".format(name))
-        self.get_player(pid=pid).name = name
+        self.notify.debug(f"Changing name of {local_id} to {name}")
+        self.get_player(local_id=local_id).name = name
 
         # tell players
-        return self.message_all_players(dg_update_player_name(self.get_local_id_from_pid(pid), name))
+        return self.message_all_players(dg_update_player_name(local_id, name))
 
     def vote_to_start(self, pid):
         """
@@ -228,7 +240,7 @@ class Game:
 
                 self.verify_vote_to_start()
             else:
-                self.notify.warning("No player w/ that pid")
+                self.notify.warning(f"vote_to_start, no player with PID {pid}")
         else:
             self.notify.warning("Vote to start from {} after game's already started".format(pid))
 
@@ -307,6 +319,7 @@ class Game:
             else:
                 if p.room == room and p.local_id != self.killer:
                     in_room.append(p.local_id)
+        self.notify.debug(f"get_players_in_room Players in room {room}: {in_room}")
         return in_room
 
     def get_local_id_pool(self):
@@ -369,15 +382,14 @@ class Game:
         self.started = True
         self.day_count = 1
 
+        # create AI
+        while self.get_player_count() < MAX_PLAYERS:
+            self.add_ai()
+
         # fix people who haven't updated their name
         for p in self.players:
             if p.name == "???":
-                p.random_name()
-
-        # create AI
-        while self.get_player_count() < MAX_PLAYERS:
-            new_ai = AI(self.generate_local_id())
-            self.players.append(new_ai)
+                self.set_name(p.local_id, p.random_name())
 
         # assign killer
         # TODO
@@ -394,74 +406,78 @@ class Game:
         taskMgr.doMethodLater(TIME, self.change_time, "DayNight Cycle {}".format(self.gid))
 
     def change_time(self, taskdata):
-        # set vars
         self.day = not self.day
         if self.day:
-            # only change day count when it becomes day
-            self.day_count += 1
-
-            # check if changing day count put us over the limit
-            if self.day_count > MAX_DAYS:
-                self.notify.debug("Maximum day_count reached: {}/{}".format(self.day_count, MAX_DAYS))
-                self.delete_this_game()
-                return Task.done
-
-            # check if killer wants to kill
-            killer = self.get_player(local_id=self.killer)
-            if killer.wants_to_kill:
-                # KILL
-                self.red_room = killer.room
-                possible_victims = self.get_players_in_room(self.red_room, False)
-                if len(possible_victims) > 0:
-                    # select random
-                    victim = random.choice(possible_victims)
-
-                    self.notify.debug("Killing {} in {}".format(victim, self.gid))
-
-                    if self.get_player(local_id=victim).ai:
-                        self.remove_player(local_id=victim)
-                    else:
-                        self.msgr.remove_player_from_game(self.get_pid_from_local_id(victim), KILLED)
-
-                        # check if need to end game due to lack of players
-                        if not self.any_real_players():
-                            self.notify.debug("No non-ai players in game {}".format(self.gid))
-                            self.delete_this_game()
-                            return Task.done
-                else:
-                    self.red_room = 0
-                    self.message_killer(dg_kill_failed_empty_room())
-            else:
-                # killer doesn't want to kill
-                self.red_room = 0
-
-            # reset player rooms
-            for p in self.players:
-                p.room = None
-
-            # reset killer's choice
-            killer.wants_to_kill = False
+            self.change_to_day()
         else:
-            for p in self.players:
-                # run ai
-                if p.ai:
-                    p.night_run()
-                else:
-                    # make sure every one's picked a room, if they haven't give them a random one
-                    if not p.room:
-                        p.random_room()
-
-                # send them the amount of people in their room
-                self.message_player(dg_how_many_in_room(len(self.get_players_in_room(p.room, True))),
-                                    p.local_id)
-
-        # tell players
-        if self.day:
-            self.message_all_players(dg_goto_day(self))
-        else:
-            self.message_all_players(dg_goto_night(self))
+            self.change_to_night()
 
         return Task.again
+
+    def change_to_day(self):
+        self.day_count += 1
+
+        # check if changing day count put us over the limit
+        if self.day_count > MAX_DAYS:
+            self.notify.debug(f"change_to_day Maximum day_count reached: {self.day_count}/{MAX_DAYS}")
+            self.delete_this_game()
+            return Task.done
+
+        # check if killer wants to kill
+        killer = self.get_player(local_id=self.killer)
+        if killer.wants_to_kill:
+            # KILL
+            self.red_room = killer.room
+            possible_victims = self.get_players_in_room(self.red_room, False)
+            if len(possible_victims) > 0:
+                # select random
+                victim = random.choice(possible_victims)
+
+                self.notify.debug("Killing {} in {}".format(victim, self.gid))
+
+                if self.get_player(local_id=victim).ai:
+                    self.remove_player(local_id=victim)
+                else:
+                    self.msgr.remove_player_from_game(self.get_pid_from_local_id(victim), KILLED)
+
+                    # check if need to end game due to lack of players
+                    if not self.any_real_players():
+                        self.notify.debug("No non-ai players in game {}".format(self.gid))
+                        self.delete_this_game()
+                        return Task.done
+            else:
+                self.red_room = 0
+                self.message_killer(dg_kill_failed_empty_room())
+        else:
+            # killer doesn't want to kill
+            self.red_room = 0
+
+        # reset player rooms
+        for p in self.players:
+            p.room = None
+
+        # reset killer's choice
+        killer.wants_to_kill = False
+
+        self.message_all_players(dg_goto_day(self))
+
+    def change_to_night(self):
+        for p in self.players:
+            # run ai
+            if p.ai:
+                p.night_run()
+            else:
+                # make sure every one's picked a room, if they haven't give them a random one
+                if not p.room:
+                    p.random_room()
+        # now that everyone is in their room, tell everyone how many are with them
+        for p in self.players:
+            if not p.ai:
+                self.notify.debug(f"change_to_night Players in room: {len(self.get_players_in_room(p.room, True))}")
+                self.message_player(dg_how_many_in_room(len(self.get_players_in_room(p.room, True)) - 1),
+                                    p.local_id)
+
+        self.message_all_players(dg_goto_night(self))
 
     def delete_this_game(self):
         # end tasks

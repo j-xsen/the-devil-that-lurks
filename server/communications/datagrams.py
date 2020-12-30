@@ -33,17 +33,16 @@ def dg_kick_from_game(reason):
 
 
 # Lobby
-def dg_add_player(local_id):
+def dg_add_player(local_id, name="???"):
     """
     Tells players in lobby that a new player has joined
-    :param local_id: local_id of new player
-    :type local_id: int
-    :return: the datagram to send
-    :rtype: pydatagram
+        uint8 - local_id
+        string - name
     """
     dg = PyDatagram()
     dg.addUint8(ADD_PLAYER)
     dg.addUint8(local_id)
+    dg.addString(name)
     return dg
 
 
@@ -90,10 +89,6 @@ def dg_start_game(game):
     dg = PyDatagram()
     dg.addUint8(START_GAME)
 
-    for p in game.players:
-        dg.addString(p.name)
-        dg.addUint8(p.local_id)
-
     return dg
 
 
@@ -113,6 +108,10 @@ def dg_goto_night(game):
 
 
 def dg_has_died(local_id):
+    """
+    :param local_id: The local_id of the player who has died
+    :type local_id: Uint8
+    """
     dg = PyDatagram()
     dg.addUint8(HAS_DIED)
     dg.addUint8(local_id)

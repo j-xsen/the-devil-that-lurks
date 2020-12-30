@@ -3,6 +3,7 @@ from level.level import Level
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.DirectGui import DirectButton
 from objects.entry import Entry
+from objects.checkbox import Checkbox
 
 from communications.datagrams import dg_vote_to_start, dg_leave_lobby, dg_update_name
 
@@ -54,8 +55,8 @@ class LobbyLevel(Level):
         """
         # get list from father
         names = ""
-        for p in self.father.players:
-            names += "{}\n".format(self.father.players[p]["name"])
+        for local_id in self.level_holder.players:
+            names += "{}\n".format(self.level_holder.players[local_id].name)
 
         # display
         self.text["txt_names"].text = names
@@ -64,7 +65,7 @@ class LobbyLevel(Level):
         """
         Updates the player count information
         """
-        self.players_count = len(self.father.players)
+        self.players_count = len(self.level_holder.players)
         self.text["txt_players"].text = "{}/9".format(self.players_count)
         self.text["txt_votes"].text = "{}/{}".format(self.votes, self.players_count)
 

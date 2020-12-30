@@ -42,7 +42,7 @@ class MainMenuLevel(Level):
                                          self.sprites.find('**/mm-exit-hover'),
                                          self.sprites.find('**/mm-exit-disabled')),
                                    relief=None, geom_scale=(0.666, 0, 0.25), geom_pos=(0, 0, -0.75),
-                                   command=self.father.exit_game)
+                                   command=self.level_holder.exit_game)
         settings_button = DirectButton(geom=(self.sprites.find('**/mm-settings-ready'),
                                              self.sprites.find('**/mm-settings-click'),
                                              self.sprites.find('**/mm-settings-hover'),
@@ -56,7 +56,7 @@ class MainMenuLevel(Level):
                                    relief=None, geom_scale=(1, 0, 0.3), geom_pos=(0, 0, 0.1),
                                    command=self.goto_play)
 
-        if not self.father.check_connection():
+        if not self.level_holder.check_connection():
             play_button["state"] = DGG.DISABLED
 
         self.images["img_logo"] = logo
@@ -108,7 +108,7 @@ class MainMenuLevel(Level):
         Level.create(self)
 
         # reset game vars when going to main menu
-        self.father.reset_game_vars()
+        self.level_holder.reset_game_vars()
 
         self.sprites = loader.loadModel("mainmenu/mainmenu.egg")
         # red pawn

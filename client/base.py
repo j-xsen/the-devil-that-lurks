@@ -10,14 +10,16 @@ from panda3d.core import QueuedConnectionReader
 from panda3d.core import ConnectionWriter
 
 from communications.codes import *
-from father import Father
+from level.level_holder import LevelHolder
 from communications.messager import Messager
 from objects.alert import Alert
 from level.codes import *
+from objects.checkbox import Checkbox
 
 from config import *
 from panda3d.core import loadPrcFile
 loadPrcFile("config/Config.prc")
+
 
 class Client(ShowBase):
     # notify
@@ -36,7 +38,8 @@ class Client(ShowBase):
         self.disableMouse()
 
         # create father
-        self.father = Father(self.cWriter, self.cManager, self.cReader)
+        self.level_holder = LevelHolder(self.cWriter, self.cManager, self.cReader)
+        self.messager = self.level_holder.messager
 
         # inputs
         self.accept('escape', self.debug)
@@ -46,7 +49,7 @@ class Client(ShowBase):
 
     def debug(self):
         # testing_alert = Alert(-1)
-        self.father.set_active_level(NIGHT)
+        self.level_holder.set_active_level(NIGHT)
 
     def connect(self):
         port_address = SERVER_PORT
@@ -58,15 +61,15 @@ class Client(ShowBase):
                                                               timeout)
         if my_connection:
             self.notify.info("Connected")
-            self.father.set_connection(my_connection)
+            self.level_holder.set_connection(my_connection)
             self.cReader.addConnection(my_connection)
 
             # tasks
-            taskMgr.add(self.father.messager.check_for_message, "Poll the connection reader", -39)
-            taskMgr.doMethodLater(HEARTBEAT_PLAYER, self.father.messager.heartbeat, "Send heartbeat")
+            taskMgr.add(self.messager.check_for_message, "Poll the connection reader", -39)
+            taskMgr.doMethodLater(HEARTBEAT_PLAYER, self.messager.heartbeat, "Send heartbeat")
         else:
             Alert(-2)
-            self.father.failed_to_connect()
+            self.level_holder.failed_to_connect()
             self.notify.warning("Could not connect!")
 
 
