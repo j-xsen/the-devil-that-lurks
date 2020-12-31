@@ -31,7 +31,7 @@ class SingleGame(Notifier):
         self.txt_day = OnscreenText(text="", pos=(1, .7), scale=0.08, fg=(1, 1, 1, 1))
         self.txt_red_room = OnscreenText(text="", pos=(1, .6), scale=0.08, fg=(0.68, 0.12, 0.12, 1))
 
-        self.notify.info("__init__ Created SingleGame")
+        self.notify.info("[__init__] Created SingleGame")
 
     def change_gid(self, new_gid):
         self.gid = new_gid

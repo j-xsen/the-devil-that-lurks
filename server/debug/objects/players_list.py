@@ -3,18 +3,22 @@ from objects.notifier import Notifier
 from direct.task.TaskManagerGlobal import taskMgr
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.DirectGui import DirectButton
+from debug.objects.list import List
 
 
-class PlayersList(Notifier):
-    def __init__(self, players):
+class PlayersList(Notifier, List):
+    def __init__(self, debug_ui):
         """
-        :param players: List of every player to include in the list
-        :type players: list
+        :param players: Dict of every player to include in the list
+        :type players: dict
         """
+        List.__init__(self, debug_ui.messager.active_connections, 10, (-1.1, 0.6), active=False)
         Notifier.__init__(self, "ui-players-list")
-        self.txt_players_title = OnscreenText(text="Players:", pos=(-1, .8), scale=0.1, fg=(1, 1, 1, 1))
-        self.btns_players = []
-        self.page = 1
-        self.max_per_page = 10
 
-        self.notify.info("__init__ Created a PlayersList")
+        self.debug_ui = debug_ui
+
+        self.btn_players_title = DirectButton(scale=self.scale, text="Players", pos=(-.65, 1, .8),
+                                              frameSize=self.frame_size,
+                                              command=self.debug_ui.switch_list, extraArgs=[2])
+
+        self.notify.info("[__init__] Created a PlayersList")
