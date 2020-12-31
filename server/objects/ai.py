@@ -13,8 +13,6 @@ class AI(Player, Notifier):
     def night_run(self):
         """
         What to do upon going to night
-        :return:
-        :rtype:
         """
         # select room
         self.random_room()

@@ -1,6 +1,6 @@
 from direct.showbase.DirectObject import DirectObject
 from direct.gui.OnscreenText import OnscreenText
-from direct.gui.DirectGui import DirectButton
+from direct.gui.DirectGui import DirectButton, DGG
 from objects.notifier import Notifier
 from debug.objects.list import List
 
@@ -13,9 +13,10 @@ class GamesList(DirectObject, List, Notifier):
 
         self.debug_ui = debug_ui
 
-        self.btn_games_title = DirectButton(scale=self.scale, text="Games", pos=(-1.1, 1, .8),
-                                            frameSize=self.frame_size,
-                                            command=self.debug_ui.switch_list, extraArgs=[1])
+        self.btn_title = DirectButton(scale=self.scale, text="Games", pos=(-1.1, 1, .8),
+                                      frameSize=self.frame_size,
+                                      command=self.debug_ui.switch_list, extraArgs=[1], state=DGG.DISABLED,
+                                      relief=DGG.SUNKEN)
 
         self.accept("arrow_right", self.next_page)
         self.accept("arrow_left", self.previous_page)
@@ -23,6 +24,6 @@ class GamesList(DirectObject, List, Notifier):
         self.notify.info("[__init__] Created GamesList")
 
     def game_clicked(self, gid):
-        self.notify.info(f"[game_clicked] Clicked game {gid}")
+        self.notify.debug(f"[game_clicked] Clicked game {gid}")
         self.debug_ui.change_gid(gid)
         pass

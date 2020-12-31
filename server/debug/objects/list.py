@@ -1,5 +1,5 @@
 from direct.task.TaskManagerGlobal import taskMgr
-from direct.gui.DirectGui import DirectButton
+from direct.gui.DirectGui import DirectButton, DGG
 from direct.gui.OnscreenText import OnscreenText
 
 
@@ -7,21 +7,21 @@ class List:
     def __init__(self, the_dict, max_per_page, pos, scale=(0.1, 0.1, 0.1), frame_size=(-2, 2, -0.75, 0.75),
                  command=None, active=True):
         """
-        :param the_dict: The dictionary to create a list of
-        :type the_dict: dict
-        :param max_per_page: Maximum number of items per page
-        :type max_per_page: int
-        :param pos: The position that you want the buttons to appear
-        :type pos: tuple
-        :param scale: The scale of the buttons
-        :type scale: tuple
-        :param frame_size: The size of the buttons
-        :type frame_size: tuple
-        :param command: The command to run if a command is desired. If none is inputted, it'll make OnscreenTexts
+        @param the_dict: The dictionary to create a list of
+        @type the_dict: dict
+        @param max_per_page: Maximum number of items per page
+        @type max_per_page: int
+        @param pos: The position that you want the buttons to appear
+        @type pos: tuple
+        @param scale: The scale of the buttons
+        @type scale: tuple
+        @param frame_size: The size of the buttons
+        @type frame_size: tuple
+        @param command: The command to run if a command is desired. If none is inputted, it'll make OnscreenTexts
                         rather than DirectButton
-        :type command: function
-        :param active: Should the list be displayed?
-        :type active: bool
+        @type command: function
+        @param active: Should the list be displayed?
+        @type active: bool
         """
         taskMgr.doMethodLater(1, self.update_list, "Update the list")
 
@@ -33,6 +33,7 @@ class List:
         self.pos = pos
         self.command = command
 
+        self.btn_title = None
         self.the_dict = the_dict
         self.btns = []
 
@@ -48,13 +49,19 @@ class List:
     def change_active(self, new_active):
         """
         Use this to change self.active
-        :param new_active: The new self.active value
-        :type new_active: bool
+        @param new_active: The new self.active value
+        @type new_active: bool
         """
         self.active = new_active
         if new_active:
+            if self.btn_title:
+                self.btn_title["state"] = DGG.DISABLED
+                self.btn_title["relief"] = DGG.SUNKEN
             self.update_list_manual()
         else:
+            if self.btn_title:
+                self.btn_title["state"] = DGG.NORMAL
+                self.btn_title["relief"] = DGG.RAISED
             self.clear_buttons()
 
     def update_list(self, task):

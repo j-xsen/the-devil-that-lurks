@@ -9,16 +9,17 @@ from debug.objects.list import List
 class PlayersList(Notifier, List):
     def __init__(self, debug_ui):
         """
-        :param players: Dict of every player to include in the list
-        :type players: dict
+        @param debug_ui: Dict of every player to include in the list
+        @type debug_ui: dict
         """
-        List.__init__(self, debug_ui.messager.active_connections, 10, (-1.1, 0.6), active=False)
+        List.__init__(self, debug_ui.messager.active_connections, 10, (-1.1, 0.6), active=False,
+                      command=debug_ui.change_pid)
         Notifier.__init__(self, "ui-players-list")
 
         self.debug_ui = debug_ui
 
-        self.btn_players_title = DirectButton(scale=self.scale, text="Players", pos=(-.65, 1, .8),
-                                              frameSize=self.frame_size,
-                                              command=self.debug_ui.switch_list, extraArgs=[2])
+        self.btn_title = DirectButton(scale=self.scale, text="Players", pos=(-.65, 1, .8),
+                                      frameSize=self.frame_size,
+                                      command=self.debug_ui.switch_list, extraArgs=[2])
 
         self.notify.info("[__init__] Created a PlayersList")

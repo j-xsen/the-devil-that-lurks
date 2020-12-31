@@ -96,11 +96,15 @@ class LevelHolder:
         @type local_id: int
         @param new_name: The player's new name
         @type new_name: string
+        @return: If successful
+        @rtype: bool
         """
-        self.notify.debug(f"Changing name of {local_id} to {new_name}")
+        self.notify.debug(f"[update_name] Changing name of {local_id} to {new_name}")
         if self.active_level == LOBBY:
             self.players[local_id].name = new_name
             self.levels[LOBBY].update_player()
+            return True
+        return False
 
     def reset_game_vars(self):
         """
