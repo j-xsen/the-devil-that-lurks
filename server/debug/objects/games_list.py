@@ -6,28 +6,25 @@ from direct.gui.DirectGui import DirectButton
 
 
 class GamesList(DirectObject):
-    def __init__(self):
+    def __init__(self, debug_ui):
         DirectObject.__init__(self)
 
-        self.notify = directNotify.newCategory("games-list")
+        self.notify = directNotify.newCategory("ui-games-list")
 
         taskMgr.doMethodLater(1, self.update_list, "Update the debug game list")
-        self.txt_games_title = OnscreenText(text="Games:", pos=(-1.1, .8), scale=0.1, fg=(1, 1, 1, 1))
 
+        self.debug_ui = debug_ui
+        self.txt_games_title = OnscreenText(text="Games:", pos=(-1.1, .8), scale=0.1, fg=(1, 1, 1, 1))
         self.btns_games = []
         self.page = 1
         self.max_per_page = 10
-
-        self.debug_games_list = {}
-        for i in range(1, 50):
-            self.debug_games_list[i] = f"test_{i}"
 
         self.accept("arrow_right", self.next_page)
         self.accept("arrow_left", self.previous_page)
 
         self.update_list_manual()
 
-        self.notify.debug("__init__ Created GamesList")
+        self.notify.info("__init__ Created GamesList")
 
     def update_list(self, task):
         self.update_list_manual()
@@ -40,7 +37,7 @@ class GamesList(DirectObject):
             del btn
         self.btns_games.clear()
 
-        all_games_list = sorted(self.debug_games_list.keys())
+        all_games_list = sorted(self.debug_ui.messager.games.keys())
         starting_number = (self.page - 1) * self.max_per_page
         ending_number = starting_number + self.max_per_page
 
@@ -72,5 +69,6 @@ class GamesList(DirectObject):
             self.update_list_manual()
 
     def game_clicked(self, gid):
-        self.notify.debug(f"game_clicked Clicked game {gid}")
+        self.notify.info(f"game_clicked Clicked game {gid}")
+        self.debug_ui.change_gid(gid)
         pass
