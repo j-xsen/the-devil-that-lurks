@@ -1,9 +1,10 @@
 from communications.codes import *
 from communications.datagrams import dg_deliver_pid, dg_deliver_game, dg_kick_from_game, dg_kill_connection
-from direct.directnotify.DirectNotifyGlobal import directNotify
+from objects.notifier import Notifier
 from direct.task import Task
 from config import *
 from objects.game import Game
+from objects.connection_holder import ConnectionHolder
 
 # random
 from direct.showbase.RandomNumGen import RandomNumGen
@@ -28,10 +29,7 @@ This class receives and decodes messages
 """
 
 
-class Messager:
-
-    # notify
-    notify = directNotify.newCategory("msgr")
+class Messager(Notifier):
 
     # network
     cManager = QueuedConnectionManager()
@@ -40,6 +38,8 @@ class Messager:
     cWriter = ConnectionWriter(cManager, 0)
 
     def __init__(self):
+        Notifier.__init__(self, "msgr")
+
         # dicts
         self.active_connections = {}
         self.games = {}
@@ -50,6 +50,8 @@ class Messager:
         self.cListener.addConnection(tcp_socket)
 
         self.debug_ui = DebugUI(self)
+
+        self.notify.info("__init__ Created Messager")
 
         return
 
@@ -69,9 +71,12 @@ class Messager:
 
                 pid = self.create_pid()
 
-                self.active_connections[pid] = {"connection": new_connection,
-                                                "gid": None,
-                                                "heartbeat": True}
+                # self.active_connections[pid] = {"connection": new_connection,
+                #                                 "gid": None,
+                #                                 "heartbeat": True}
+
+                new_connection_holder = ConnectionHolder(new_connection, pid)
+                self.active_connections[pid] = new_connection_holder
 
                 self.cReader.add_connection(new_connection)
 
@@ -103,12 +108,12 @@ class Messager:
 
     def check_heartbeats(self, task):
         for pid in self.active_connections:
-            connection = self.active_connections[pid]
-            if connection["heartbeat"]:
-                connection["heartbeat"] = False
+            connection_holder = self.active_connections[pid]
+            if connection_holder.heartbeat:
+                connection_holder.heartbeat = False
             else:
-                self.notify.info(f"Player {connection['pid']} has no heartbeat!")
-                self.remove_player(connection["pid"], NO_HEART)
+                self.notify.info(f"Player {connection_holder.pid} has no heartbeat!")
+                self.remove_player(connection_holder.pid, NO_HEART)
         return task.again
 
     """
@@ -147,7 +152,7 @@ class Messager:
         # remove gid from players
         for p in self.games[gid].players:
             if not p.ai:
-                self.active_connections[p.pid]["gid"] = None
+                self.active_connections[p.pid].gid = None
 
         del self.games[gid]
 
@@ -164,7 +169,7 @@ class Messager:
         :rtype: bool
         """
         self.notify.debug("Adding player {} to game {}".format(pid, gid))
-        self.active_connections[pid]["gid"] = gid
+        self.active_connections[pid].gid = gid
         self.send_message(pid, dg_deliver_game(self.games[gid]))
         self.games[gid].add_player(pid)
         return True
@@ -178,9 +183,9 @@ class Messager:
         :type reason: int
         """
         self.notify.debug("removing player {}".format(pid))
-        self.games[self.active_connections[pid]["gid"]].remove_player(pid=pid)
-        self.active_connections[pid]["gid"] = None
-        self.cWriter.send(dg_kick_from_game(reason), self.active_connections[pid]["connection"])
+        self.games[self.active_connections[pid].gid].remove_player(pid=pid)
+        self.active_connections[pid].gid = None
+        self.cWriter.send(dg_kick_from_game(reason), self.active_connections[pid].connection)
 
     def remove_player(self, pid, reason):
         """
@@ -198,10 +203,10 @@ class Messager:
             self.notify.warning(f"Requested to remove non-existent player PID {pid}")
             return False
 
-        if self.active_connections[pid]["gid"]:
+        if self.active_connections[pid].gid:
             self.remove_player_from_game(pid, reason)
 
-        self.cWriter.send(dg_kill_connection(), self.active_connections[pid]["connection"])
+        self.cWriter.send(dg_kill_connection(), self.active_connections[pid].connection)
         del self.active_connections[pid]
 
         return True
@@ -219,7 +224,7 @@ class Messager:
         if not pid:
             self.notify.warning("Requested to send message with no PID")
             return False
-        self.cWriter.send(dg, self.active_connections[pid]["connection"])
+        self.cWriter.send(dg, self.active_connections[pid].connection)
 
     def create_pid(self):
         """
@@ -251,7 +256,7 @@ class Messager:
             self.notify.warning("Received invalid REQUEST_GAME")
             return False
 
-        if not self.active_connections[pid]["gid"]:
+        if not self.active_connections[pid].gid:
             game = None
 
             for g in self.games:
@@ -285,7 +290,7 @@ class Messager:
             self.notify.warning("Received invalid VOTE_TO_START")
             return False
 
-        game = self.games[self.active_connections[pid]["gid"]]
+        game = self.games[self.active_connections[pid].gid]
 
         if not game:
             self.notify.warning("No game for {}".format(pid))
@@ -324,7 +329,7 @@ class Messager:
             self.notify.warning("Received invalid SET_ROOM")
             return False
 
-        game = self.games[self.active_connections[pid]["gid"]]
+        game = self.games[self.active_connections[pid].gid]
 
         if not game:
             self.notify.warning("{} attempted to set room while not in a game".format(pid))
@@ -348,7 +353,7 @@ class Messager:
             self.notify.warning("Received invalid SET_KILL")
             return False
 
-        game = self.games[self.active_connections[pid]["gid"]]
+        game = self.games[self.active_connections[pid].gid]
 
         if not game:
             self.notify.warning("{} attempted to set kill while not in a game".format(pid))
@@ -370,7 +375,7 @@ class Messager:
             self.notify.warning("Received invalid HEARTBEAT")
             return False
 
-        self.active_connections[pid]["heartbeat"] = True
+        self.active_connections[pid].heartbeat = True
         return True
 
     def goodbye(self, iterator):
@@ -401,7 +406,7 @@ class Messager:
             self.notify.warning("Received invalid UPDATE_NAME")
             return False
 
-        self.games[self.active_connections[pid]["gid"]].set_name(pid=pid, name=new_name)
+        self.games[self.active_connections[pid].gid].set_name(pid=pid, name=new_name)
         return True
 
     # Mapping

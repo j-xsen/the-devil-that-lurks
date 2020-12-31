@@ -1,5 +1,5 @@
 from direct.showbase.DirectObject import DirectObject
-from direct.directnotify.DirectNotifyGlobal import directNotify
+from objects.notifier import Notifier
 from direct.task.TaskManagerGlobal import taskMgr
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.DirectGui import DirectButton
@@ -18,9 +18,9 @@ ROOMS = {KITCHEN: "Kitchen",
          0: ""}
 
 
-class SingleGame:
+class SingleGame(Notifier):
     def __init__(self, messager):
-        self.notify = directNotify.newCategory("ui-single-game")
+        Notifier.__init__(self, "ui-single-game")
 
         self.messager = messager
 

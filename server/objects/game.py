@@ -1,17 +1,16 @@
-from direct.directnotify.DirectNotifyGlobal import directNotify
 from communications.datagrams import *
 from objects.player import Player
 from objects.ai import AI
 from direct.task.TaskManagerGlobal import taskMgr, Task
 from communications.codes import MAX_PLAYERS
 import random
+from objects.notifier import Notifier
 
 
-class Game:
-    notify = directNotify.newCategory("game")
+class Game(Notifier):
 
     def __init__(self, gid, msgr, open_to_public=1):
-        self.notify.debug("Creating game {}".format(gid))
+        Notifier.__init__(self, "game")
 
         self.gid = gid
         self.msgr = msgr
@@ -22,6 +21,8 @@ class Game:
         self.red_room = 0
         self.killer = None
         self.players = []
+
+        self.notify.debug(f"__init__ Created game {gid}")
 
     """
     # MESSAGING

@@ -1,15 +1,14 @@
 from direct.showbase.DirectObject import DirectObject
-from direct.directnotify.DirectNotifyGlobal import directNotify
 from direct.task.TaskManagerGlobal import taskMgr
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.DirectGui import DirectButton
+from objects.notifier import Notifier
 
 
 class GamesList(DirectObject):
     def __init__(self, debug_ui):
         DirectObject.__init__(self)
-
-        self.notify = directNotify.newCategory("ui-games-list")
+        Notifier.__init__(self, "ui-games-list")
 
         taskMgr.doMethodLater(1, self.update_list, "Update the debug game list")
 

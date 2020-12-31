@@ -1,19 +1,20 @@
 from direct.showbase.DirectObject import DirectObject
-from direct.directnotify.DirectNotifyGlobal import directNotify
 from debug.objects.games_list import GamesList
 from debug.objects.single_game import SingleGame
+from debug.objects.players_list import PlayersList
+from objects.notifier import Notifier
 
 
-class DebugUI(DirectObject):
+class DebugUI(DirectObject, Notifier):
 
     def __init__(self, messager):
         DirectObject.__init__(self)
-
-        self.notify = directNotify.newCategory("ui")
+        Notifier.__init__(self, "ui")
 
         self.messager = messager
         self.games_list = GamesList(self)
         self.single_game = SingleGame(messager)
+        # self.players_all = PlayersList(message.)
 
         self.notify.info("__init__ Created DebugUI")
 
