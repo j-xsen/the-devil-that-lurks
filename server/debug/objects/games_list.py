@@ -7,6 +7,10 @@ from debug.objects.list import List
 
 class GamesList(DirectObject, List, Notifier):
     def __init__(self, debug_ui):
+        """
+        @param debug_ui: The parent DebugUI
+        @type debug_ui: DebugUI
+        """
         DirectObject.__init__(self)
         Notifier.__init__(self, "ui-games-list")
         List.__init__(self, debug_ui.messager.games, 10, (-1.1, 0.6), command=self.game_clicked)

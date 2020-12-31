@@ -18,20 +18,20 @@ class LobbyLevel(Level):
         self.players_count = 0
 
     def create(self):
-        txt_players = OnscreenText(text="Players", pos=(0, 0.5), scale=0.35, fg=(1, 1, 1, 1))
+        txt_players = OnscreenText(text="0/9", pos=(0, 0), scale=0.2, fg=(1, 1, 1, 1))
         txt_names = OnscreenText(text="", pos=(-.925, -0.15), scale=0.1, fg=(1, 1, 1, 1))
-        txt_current = OnscreenText(text="0/9", pos=(0, 0), scale=0.2, fg=(1, 1, 1, 1))
         txt_votes = OnscreenText(text="0/0", pos=(0, -0.75), scale=0.2, fg=(1, 1, 1, 1))
+        txt_gid = OnscreenText(text="22222", pos=(0, 0.5), scale=0.1, fg=(1, 1, 1, 1))
 
         btn_vote = DirectButton(text="Vote to start", scale=0.1, pos=(0, 0, -0.5), command=self.vote_to_start)
         btn_leave = DirectButton(text="Leave Lobby", scale=0.1, pos=(0.75, 0, 0), command=self.leave)
 
         entry_name = Entry("Enter a name", (-1, 0, 0), self.update_name)
 
-        self.text["txt_current"] = txt_current
         self.text["txt_names"] = txt_names
         self.text["txt_players"] = txt_players
         self.text["txt_votes"] = txt_votes
+        self.text["txt_gid"] = txt_gid
         self.gui["btn_vote"] = btn_vote
         self.gui["btn_leave"] = btn_leave
         self.gui["entry_name"] = entry_name
@@ -41,6 +41,9 @@ class LobbyLevel(Level):
 
     def leave(self):
         self.messager.write(dg_leave_lobby(self.messager.pid))
+
+    def set_gid(self, gid):
+        self.text["txt_gid"].text = f"Game ID: {gid}"
 
     def update_player(self):
         """

@@ -223,6 +223,7 @@ class Game(Notifier):
 
         # check if game needs to be deleted
         if not self.any_real_players():
+            self.notify.debug(f"[remove_player] No real players remaining in game {self.gid}")
             self.delete_this_game()
             return True
 

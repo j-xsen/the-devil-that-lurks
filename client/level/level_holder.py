@@ -49,7 +49,7 @@ class LevelHolder:
 
         atexit.register(self.exit_game)
 
-        self.notify.debug("level_holder init")
+        self.notify.debug("[__init__] Created level_holder")
 
     def set_active_level(self, level):
         """
@@ -74,7 +74,7 @@ class LevelHolder:
         new_player = Player(local_id, name=name)
         self.players[local_id] = new_player
 
-        self.notify.debug(f"Added local player {local_id}")
+        self.notify.debug(f"[add_player] Added local player {local_id}")
 
         if self.active_level == LOBBY:
             self.levels[LOBBY].update_player()

@@ -97,23 +97,26 @@ class Messager:
     def game_received(self, iterator):
         """
         Called when server gives client a game
+            uint16 - gid: The GID
             uint8 - vote_count: the amount of votes to start the game
-        @return If successful
-        @rtype bool
+        @return: If successful
+        @rtype: bool
         """
         # check if valid
         try:
+            gid = iterator.getUint16()
             vote_count = iterator.getUint8()
         except AssertionError:
             self.notify.warning("[game_received] Invalid DELIVER_GAME!")
             return False
 
-        self.notify.debug(f"[game_received] Received game with a vote count of {vote_count}")
+        self.notify.debug(f"[game_received] Received game {gid} with a vote count of {vote_count}")
 
         # if father is on main menu, send them to lobby
         if self.level_holder.active_level == MAINMENU:
             self.level_holder.set_active_level(LOBBY)
             self.level_holder.levels[LOBBY].update_vote_count(vote_count)
+            self.level_holder.levels[LOBBY].set_gid(gid)
             return True
         else:
             self.notify.warning("[game_received] Received a game while in a game!")

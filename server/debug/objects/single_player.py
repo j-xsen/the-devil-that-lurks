@@ -37,7 +37,7 @@ class SinglePlayer(Notifier):
         self.notify.debug(f"[change_pid] Changing PID to {new_pid}")
         self.pid = new_pid
         if new_pid:
-            self.txt_pid.text = f"PID: {self.pid}"
+            self.update_info_manual()
         else:
             self.notify.debug(f"[change_pid] No active_connection of PID {new_pid} found!")
             for txt in self.txts:
@@ -55,6 +55,7 @@ class SinglePlayer(Notifier):
         if self.pid:
             # check if they've disconnected
             if self.pid in self.debug_ui.messager.active_connections.keys():
+                self.txt_pid.text = f"PID: {self.pid}"
                 # check if they're in a game
                 gid = self.debug_ui.messager.active_connections[self.pid].gid
                 if gid and not self.btn_gid:

@@ -21,6 +21,7 @@ def dg_deliver_pid(pid):
 def dg_deliver_game(game):
     dg = PyDatagram()
     dg.addUint8(DELIVER_GAME)
+    dg.addUint16(game.gid)
     dg.addUint8(game.get_vote_count())
     return dg
 
