@@ -62,7 +62,8 @@ class Messager:
         return Task.again
 
     def write(self, dg):
-        if self.my_connection:
+        if self.my_connection is not None:
+            self.notify.debug(f"[write] self.my_connection is not None! {self.my_connection}")
             return self.cWriter.send(dg, self.my_connection)
         else:
             Alert(-2)

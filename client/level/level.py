@@ -17,6 +17,9 @@ class Level:
         self.text = {}
         self.timer = None
 
+    def __repr__(self):
+        return f"Level({self.name})"
+
     def create(self):
         for f in self.multifiles:
             self.level_holder.vfs.mount(Filename("mf/{}".format(f)), ".", VirtualFileSystem.MFReadOnly)

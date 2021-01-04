@@ -3,15 +3,19 @@ from direct.gui.OnscreenText import OnscreenText
 from localization.en import LOCAL_EN
 from communications.codes import GENERAL
 from panda3d.core import VirtualFileSystem, Filename, TextNode
+from objects.notifier import Notifier
 
 
-class Alert:
+class Alert(Notifier):
     def __init__(self, reason):
+        Notifier.__init__(self, "alert")
         VirtualFileSystem.getGlobalPtr().mount(Filename("mf/alert.mf"), ".", VirtualFileSystem.MFReadOnly)
         ok = loader.loadModel("alert.egg")
 
         if reason not in LOCAL_EN:
             reason = GENERAL
+
+        self.reason = reason
 
         self.bg_frame = DirectFrame(frameColor=(0, 0, 0, 0),
                                     frameSize=(-1, 1, -1, 1), suppressMouse=1, state=DGG.NORMAL,
@@ -28,7 +32,12 @@ class Alert:
                                    relief=None, geom_scale=(0.3, 0, 0.15), geom_pos=(0, 0, -0.175),
                                    pressEffect=0, command=self.destroy, parent=self.frame)
 
+        self.notify.debug(f"[__init__] Created Alert with reason {self.reason}")
+
         loader.unloadModel(ok)
+
+    def __repr__(self):
+        return str(self.reason)
 
     def destroy(self):
         VirtualFileSystem.getGlobalPtr().unmount("mf/alert.mf")

@@ -68,6 +68,7 @@ class Client(ShowBase):
             taskMgr.add(self.messager.check_for_message, "Poll the connection reader", -39)
             taskMgr.doMethodLater(HEARTBEAT_PLAYER, self.messager.heartbeat, "Send heartbeat")
         else:
+            self.notify.warning("[connect] Failed to connect!")
             Alert(-2)
             self.level_holder.failed_to_connect()
             self.notify.warning("Could not connect!")

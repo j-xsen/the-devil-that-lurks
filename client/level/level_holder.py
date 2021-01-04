@@ -12,12 +12,16 @@ import sys
 import atexit
 from level.codes import *
 from communications.messager import Messager
+from objects.entry import Entry
+from direct.showbase.DirectObject import DirectObject
+from objects.console import Console
 
 
 # The Father object holds all UIs and Levels
-class LevelHolder:
+class LevelHolder(DirectObject):
 
     def __init__(self, _cWriter, _cManager, _cReader):
+        DirectObject.__init__(self)
         # notify
         self.notify = directNotify.newCategory("level_holder")
 
@@ -35,6 +39,10 @@ class LevelHolder:
         self.vfs.mount(Filename("mf/pawns.mf"), ".", VirtualFileSystem.MFReadOnly)
         self.vfs.mount(Filename("mf/timer.mf"), ".", VirtualFileSystem.MFReadOnly)
 
+        # console
+        self.console = None
+        self.accept("`", self.pressed_tilda)
+
         # Levels
         self.levels = {
             MAINMENU: MainMenuLevel(self),
@@ -51,21 +59,41 @@ class LevelHolder:
 
         self.notify.debug("[__init__] Created level_holder")
 
+    def pressed_tilda(self):
+        if self.console is None:
+            self.console = Console(self)
+        else:
+            self.console.destroy()
+            self.console = None
+
     def set_active_level(self, level):
         """
         Set the active level
         @param level: the level's code
-        @param day_count: (opt) if day_count has been updated
         @type level: int
         """
-        self.levels[self.active_level].destroy()
+        if type(level) == int:
+            if level in self.levels.keys():
+                self.levels[self.active_level].destroy()
 
-        base.camera.setPos((0, 0, 0))
-        base.camera.setHpr((0, 0, 0))
+                base.camera.setPos((0, 0, 0))
+                base.camera.setHpr((0, 0, 0))
 
-        self.active_level = level
+                self.active_level = level
 
-        self.levels[self.active_level].create()
+                self.levels[self.active_level].create()
+            else:
+                self.notify.warning(f"[set_active_level] Attempted to set level to {level}! Available levels:"
+                                    f" {self.levels.keys()}")
+        elif type(level) == str:
+            try:
+                int_level = int(level)
+            except TypeError:
+                self.notify.warning(f"[set_active_level] Attempted to set level to {level}!")
+                return
+            self.notify.warning(f"[set_active_level] Tried to set level to {level}, but as a string!"
+                                f" Make sure you're using an int!")
+            self.set_active_level(int_level)
 
     def add_player(self, local_id, name):
         """
@@ -125,7 +153,10 @@ class LevelHolder:
         for level in self.levels:
             self.levels[level].destroy()
 
-        if not self.messager.my_connection or not self.messager.pid:
+        if self.console is not None:
+            self.console.destroy()
+
+        if self.messager.my_connection is None or self.messager.pid is None:
             sys.exit()
 
         # tell server
@@ -134,6 +165,7 @@ class LevelHolder:
         sys.exit()
 
     def set_connection(self, connection):
+        self.notify.debug(f"[set_connection] Setting connection to {connection}")
         self.messager.my_connection = connection
 
         if self.active_level == MAINMENU:
