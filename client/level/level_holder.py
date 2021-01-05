@@ -7,29 +7,41 @@ from direct.directnotify.DirectNotifyGlobal import directNotify
 from communications.datagrams import dg_goodbye
 from panda3d.core import VirtualFileSystem
 from panda3d.core import Filename
+from objects.player import Player
 import sys
 import atexit
 from level.codes import *
+from communications.messager import Messager
+from objects.entry import Entry
+from direct.showbase.DirectObject import DirectObject
+from objects.console import Console
 
 
 # The Father object holds all UIs and Levels
-class Father:
+class LevelHolder(DirectObject):
 
     def __init__(self, _cWriter, _cManager, _cReader):
+        DirectObject.__init__(self)
         # notify
-        self.notify = directNotify.newCategory("father")
+        self.notify = directNotify.newCategory("level_holder")
+
+        # so we can send messages
+        self.messager = Messager(_cWriter, _cManager, _cReader, self)
 
         # Create stuff we don't want to keep recreating because of their permanence
-        self.rooms = []
         self.players = {}
-        self.dead = []
         self.day = 0
         self.killer = False
+        self.red_room = 0
         self.vfs = VirtualFileSystem.getGlobalPtr()
 
         # these are used in nearly every level, just keep it loaded
         self.vfs.mount(Filename("mf/pawns.mf"), ".", VirtualFileSystem.MFReadOnly)
         self.vfs.mount(Filename("mf/timer.mf"), ".", VirtualFileSystem.MFReadOnly)
+
+        # console
+        self.console = None
+        self.accept("`", self.pressed_tilda)
 
         # Levels
         self.levels = {
@@ -43,41 +55,54 @@ class Father:
         self.active_level = MAINMENU
         self.levels[self.active_level].create()
 
-        # so we can send messages
-        self.my_connection = None
-        self.cWriter = _cWriter
-        self.cManager = _cManager
-        self.cReader = _cReader
-        self.pid = None
-
         atexit.register(self.exit_game)
 
-    def set_active_level(self, level, day_count=-1):
+        self.notify.debug("[__init__] Created level_holder")
+
+    def pressed_tilda(self):
+        if self.console is None:
+            self.console = Console(self)
+        else:
+            self.console.destroy()
+            self.console = None
+
+    def set_active_level(self, level):
         """
         Set the active level
         @param level: the level's code
-        @param day_count: (opt) if day_count has been updated
         @type level: int
         """
-        if day_count != -1:
-            self.day = day_count
+        if type(level) == int:
+            if level in self.levels.keys():
+                self.levels[self.active_level].destroy()
 
-        self.levels[self.active_level].destroy()
+                base.camera.setPos((0, 0, 0))
+                base.camera.setHpr((0, 0, 0))
 
-        base.camera.setPos((0, 0, 0))
-        base.camera.setHpr((0, 0, 0))
+                self.active_level = level
 
-        self.active_level = level
+                self.levels[self.active_level].create()
+            else:
+                self.notify.warning(f"[set_active_level] Attempted to set level to {level}! Available levels:"
+                                    f" {self.levels.keys()}")
+        elif type(level) == str:
+            try:
+                int_level = int(level)
+            except TypeError:
+                self.notify.warning(f"[set_active_level] Attempted to set level to {level}!")
+                return
+            self.notify.warning(f"[set_active_level] Tried to set level to {level}, but as a string!"
+                                f" Make sure you're using an int!")
+            self.set_active_level(int_level)
 
-        self.levels[self.active_level].create()
-
-    def add_player(self, local_id):
+    def add_player(self, local_id, name):
         """
         Adds a player to the self.players dict
-        @param local_id: the local id of the new player
-        @type local_id: int
         """
-        self.players[local_id] = {"name": "???"}
+        new_player = Player(local_id, name=name)
+        self.players[local_id] = new_player
+
+        self.notify.debug(f"[add_player] Added local player {local_id}")
 
         if self.active_level == LOBBY:
             self.levels[LOBBY].update_player()
@@ -99,17 +124,21 @@ class Father:
         @type local_id: int
         @param new_name: The player's new name
         @type new_name: string
+        @return: If successful
+        @rtype: bool
         """
+        self.notify.debug(f"[update_name] Changing name of {local_id} to {new_name}")
         if self.active_level == LOBBY:
-            self.players[local_id] = {"name": new_name}
+            self.players[local_id].name = new_name
             self.levels[LOBBY].update_player()
+            return True
+        return False
 
     def reset_game_vars(self):
         """
         Erases all game variables so you can start fresh
         """
         self.players = {}
-        self.dead = []
         self.day = 0
         self.killer = False
 
@@ -118,16 +147,26 @@ class Father:
         Use this to close the game.
         Closes connection and tells server we're leaving
         """
-        if not self.my_connection:
+        VirtualFileSystem.getGlobalPtr().unmount("mf/pawns.mf")
+        VirtualFileSystem.getGlobalPtr().unmount("mf/timer.mf")
+
+        for level in self.levels:
+            self.levels[level].destroy()
+
+        if self.console is not None:
+            self.console.destroy()
+
+        if self.messager.my_connection is None or self.messager.pid is None:
             sys.exit()
 
         # tell server
-        self.write(dg_goodbye(self.pid))
-        self.cManager.closeConnection(self.my_connection)
+        self.write(dg_goodbye(self.messager.pid))
+        self.messager.cManager.closeConnection(self.messager.my_connection)
         sys.exit()
 
     def set_connection(self, connection):
-        self.my_connection = connection
+        self.notify.debug(f"[set_connection] Setting connection to {connection}")
+        self.messager.my_connection = connection
 
         if self.active_level == MAINMENU:
             self.levels[MAINMENU].connected()
@@ -147,7 +186,7 @@ class Father:
         @rtype: bool
         """
         try:
-            if self.my_connection:
+            if self.messager.my_connection:
                 return True
         except AttributeError:
             return False
@@ -155,15 +194,6 @@ class Father:
 
     def write(self, dg):
         """
-        Sends message to server
-        @param dg: datagram you want to send
-        @type dg: direct.distributed.PyDatagram.PyDatagram
-        @return: if message sends
-        @rtype: bool
+        forwards this the messager
         """
-        if self.my_connection:
-            return self.cWriter.send(dg, self.my_connection)
-        else:
-            Alert(-2)
-            self.notify.warning("No connection to send message to!")
-        return False
+        return self.messager.write(dg)

@@ -8,14 +8,11 @@ import time
 from communications.datagrams import *
 from objects.game import Game
 from config import *
+from panda3d.core import AntialiasAttrib
 from communications.messager import Messager
 
-# no window
-loadPrcFileData("", "\n".join(["notify-level-server debug",
-                               "notify-level-game debug",
-                               "notify-level-ai debug",
-                               "notify-level-msgr debug",
-                               "window-type none"]))
+from panda3d.core import loadPrcFile
+loadPrcFile("config/Config.prc")
 
 
 class Server(ShowBase):
@@ -24,13 +21,17 @@ class Server(ShowBase):
 
     def __init__(self):
         ShowBase.__init__(self)
+        ShowBase.set_background_color(self, 0.08, 0.08, 0.08, 1)
+        render.setAntialias(AntialiasAttrib.MAuto)
+        self.disableMouse()
 
         self.messager = Messager()
 
         # tasks
         taskMgr.add(self.messager.check_for_new_players, "Poll the connection listener", -39)
         taskMgr.add(self.messager.check_for_message, "Poll the connection reader", -40)
-        # taskMgr.doMethodLater(HEARTBEAT_SERVER, self.messager.heartbeat, "Poll connection heartbeats")
+        taskMgr.doMethodLater(HEARTBEAT_SERVER, self.messager.check_heartbeats,
+                              "Poll connection heartbeats")
 
 
 app = Server()

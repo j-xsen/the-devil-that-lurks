@@ -15,6 +15,9 @@ class Player:
         self.name = "???"
         self.wants_to_kill = False
 
+    def __repr__(self):
+        return f"Player({self.pid})[{self.local_id}]"
+
     def random_name(self):
         self.name = random.choice(NAMES)
 

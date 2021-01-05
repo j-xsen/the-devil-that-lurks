@@ -3,10 +3,11 @@ from panda3d.core import Filename
 
 
 class Level:
-    def __init__(self, name, multifiles, father):
+    def __init__(self, name, multifiles, level_holder):
         self.multifiles = multifiles
         self.name = name
-        self.father = father
+        self.level_holder = level_holder
+        self.messager = self.level_holder.messager
         self.actors = {}
         self.lights = {}
         self.sprites = None
@@ -16,9 +17,12 @@ class Level:
         self.text = {}
         self.timer = None
 
+    def __repr__(self):
+        return f"Level({self.name})"
+
     def create(self):
         for f in self.multifiles:
-            self.father.vfs.mount(Filename("mf/{}".format(f)), ".", VirtualFileSystem.MFReadOnly)
+            self.level_holder.vfs.mount(Filename("mf/{}".format(f)), ".", VirtualFileSystem.MFReadOnly)
         return
 
     def destroy(self):
@@ -55,6 +59,6 @@ class Level:
             self.timer = None
 
         for f in self.multifiles:
-            self.father.vfs.unmount(f)
+            self.level_holder.vfs.unmount(f)
 
         return

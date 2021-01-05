@@ -1,4 +1,5 @@
 from level.level import Level
+from direct.actor.Actor import Actor
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.DirectGui import DirectCheckButton
 from objects.timer import Timer
@@ -15,23 +16,10 @@ class NightLevel(Level):
         self.players_here = 0
 
     def create(self):
-        # Debug text
-        txt_night = OnscreenText(text="it is night", pos=(0, -0.75), scale=0.2, fg=(1, 1, 1, 1))
+        Level.create(self)
 
-        # Text displaying number players here
-        txt_num_here = OnscreenText(text="You share the room\n with {} others".format(self.players_here),
-                                    pos=(0, .25), scale=0.1, fg=(1, 1, 1, 1))
-
-        self.text["txt_night"] = txt_night
-        self.text["txt_num_here"] = txt_num_here
-
-        # Kill button
-        if self.father.killer:
-            btn_kill = DirectCheckButton(text="Kill", scale=0.1, command=self.kill)
-            self.gui["btn_kill"] = btn_kill
-
-        # timer
-        self.timer = Timer(2)
-
-    def kill(self, status):
-        self.father.write(dg_set_kill(self.father.pid, status))
+        pawn_red = Actor("pawns/pawn.bam")
+        pawn_red.setPos(-4, 20, -2)
+        pawn_red.setH(-145)
+        pawn_red.loop('breath')
+        self.actors["actor_pawn_red"] = pawn_red
