@@ -203,6 +203,7 @@ class Console(Entry, DirectObject, Notifier):
 
     mapping = {
         "commands": print_commands,
+        "help": print_commands,
         "exit": exit_game,
         "level": change_level,
         "levels": print_levels,
