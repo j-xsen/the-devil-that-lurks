@@ -1,1 +1,1 @@
-panda3d==1.10.7
+panda3d==1.10.11.post1
