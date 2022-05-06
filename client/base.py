@@ -10,7 +10,7 @@ from panda3d.core import QueuedConnectionReader
 from panda3d.core import ConnectionWriter
 
 from communications.codes import *
-from father import Father
+from level.level_holder import LevelHolder
 from communications.messager import Messager
 from objects.alert import Alert
 from level.codes import *
@@ -18,7 +18,7 @@ from level.codes import *
 from config import *
 
 loadPrcFileData("", "\n".join(["notify-level-lp debug",
-                               "notify-level-father debug",
+                               "notify-level-level_holder debug",
                                "notify-level-gui-alert debug",
                                "notify-level-msgr debug"]))
 
@@ -40,10 +40,9 @@ class Client(ShowBase):
         self.disableMouse()
 
         # create father
-        self.father = Father(self.cWriter, self.cManager, self.cReader)
+        self.father = LevelHolder(self.cWriter, self.cManager, self.cReader)
 
-        # create messager
-        self.messager = Messager(self.father)
+        self.messager = self.father.messager
 
         # inputs
         self.accept('escape', self.debug)

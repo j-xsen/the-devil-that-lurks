@@ -22,12 +22,12 @@ class Messager:
 
     def __init__(self, _cWriter, _cManager, _cReader, level_holder):
         self.notify.setDebug(True)
+        self.level_holder = level_holder
         self.cWriter = _cWriter
         self.cManager = _cManager
         self.cReader = _cReader
         self.my_connection = None
         self.pid = None
-        self.level_holder = level_holder
         self.notify.debug("[__init__] Created messager")
 
     def check_for_message(self, taskdata):

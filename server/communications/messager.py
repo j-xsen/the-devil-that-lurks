@@ -101,7 +101,7 @@ class Messager(Notifier):
         return Task.cont
 
     def check_heartbeats(self, task):
-        for pid in self.active_connections:
+        for pid in list(self.active_connections):
             connection_holder = self.active_connections[pid]
             if connection_holder.heartbeat:
                 connection_holder.heartbeat = False
