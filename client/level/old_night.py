@@ -5,7 +5,6 @@ from objects.timer import Timer
 from communications.datagrams import dg_set_kill
 
 
-# Level that all come together during day
 class NightLevel(Level):
 
     multifiles = []
