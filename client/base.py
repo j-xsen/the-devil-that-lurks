@@ -17,7 +17,7 @@ from level.codes import *
 
 from config import *
 
-loadPrcFileData("", "\n".join(["notify-level-lp debug",
+loadPrcFileData("", "\n".join([#"notify-level-lp debug",
                                "notify-level-level_holder debug",
                                "notify-level-gui-alert debug",
                                "notify-level-msgr debug"]))
