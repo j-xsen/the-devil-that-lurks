@@ -65,5 +65,6 @@ class Level:
             self.timer = None
 
         self.level_holder.vfs.unmount(self.multifiles)
+        self.notify.debug("[destroy] unmounted mf/art.mf!")
 
         return

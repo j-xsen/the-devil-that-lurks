@@ -5,3 +5,4 @@ notify-level-gui-alert debug
 notify-level-msgr debug
 notify-level-console debug
 notify-level-alert debug
+notify-level-level debug

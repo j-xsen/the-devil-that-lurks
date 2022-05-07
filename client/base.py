@@ -1,5 +1,5 @@
 from direct.showbase.ShowBase import ShowBase
-from panda3d.core import AntialiasAttrib, loadPrcFileData
+from panda3d.core import AntialiasAttrib, loadPrcFileData, loadPrcFile
 from direct.task.TaskManagerGlobal import taskMgr
 from direct.directnotify.DirectNotifyGlobal import directNotify
 
@@ -17,11 +17,7 @@ from level.codes import *
 
 from config import *
 
-loadPrcFileData("", "\n".join([#"notify-level-lp debug",
-                               "notify-level-level_holder debug",
-                               "notify-level-gui-alert debug",
-                               "notify-level-level debug",
-                               "notify-level-msgr debug"]))
+loadPrcFile("config/Config.prc")
 
 
 class Client(ShowBase):
