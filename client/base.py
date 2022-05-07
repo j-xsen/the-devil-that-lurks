@@ -20,6 +20,7 @@ from config import *
 loadPrcFileData("", "\n".join([#"notify-level-lp debug",
                                "notify-level-level_holder debug",
                                "notify-level-gui-alert debug",
+                               "notify-level-level debug",
                                "notify-level-msgr debug"]))
 
 

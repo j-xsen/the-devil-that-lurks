@@ -1,9 +1,12 @@
+from direct.directnotify.DirectNotifyGlobal import directNotify
 from panda3d.core import VirtualFileSystem, Multifile
 from panda3d.core import Filename
 
 
 class Level:
     def __init__(self, name, multifiles, level_holder):
+        # notify
+        self.notify = directNotify.newCategory("level")
         self.vfs = VirtualFileSystem.getGlobalPtr()
         self.multifiles = multifiles
         self.name = name
@@ -26,7 +29,7 @@ class Level:
         self.multifiles.openReadWrite("mf/art.mf")
 
         if self.vfs.mount(self.multifiles, ".", VirtualFileSystem.MFReadOnly):
-            print('mounted')
+            self.notify.debug("[create] mounted mf/art.mf!")
 
     def destroy(self):
         # delete actors

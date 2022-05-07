@@ -10,7 +10,7 @@ from communications.datagrams import dg_vote_to_start, dg_leave_lobby, dg_update
 
 class LobbyLevel(Level):
 
-    multifiles = []
+    multifiles = "art.mf"
 
     def __init__(self, father):
         Level.__init__(self, "Lobby", self.multifiles, father)

@@ -9,7 +9,7 @@ from panda3d.core import DirectionalLight, PerspectiveLens, Point3, Transparency
 
 class NightLevel(Level):
 
-    multifiles = []
+    multifiles = [""]
 
     def __init__(self, father):
         Level.__init__(self, "Night", self.multifiles, father)

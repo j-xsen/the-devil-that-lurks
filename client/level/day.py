@@ -13,7 +13,7 @@ from panda3d.core import VirtualFileSystem, Filename
 # Level that all come together during day
 class DayLevel(Level):
 
-    multifiles = []
+    multifiles = [""]
 
     def __init__(self, level_holder):
         Level.__init__(self, "Day", self.multifiles, level_holder)
