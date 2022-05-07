@@ -1,9 +1,10 @@
-from panda3d.core import VirtualFileSystem
+from panda3d.core import VirtualFileSystem, Multifile
 from panda3d.core import Filename
 
 
 class Level:
     def __init__(self, name, multifiles, level_holder):
+        self.vfs = VirtualFileSystem.getGlobalPtr()
         self.multifiles = multifiles
         self.name = name
         self.level_holder = level_holder
@@ -21,9 +22,11 @@ class Level:
         return f"Level({self.name})"
 
     def create(self):
-        for f in self.multifiles:
-            self.level_holder.vfs.mount(Filename("mf/{}".format(f)), ".", VirtualFileSystem.MFReadOnly)
-        return
+        self.multifiles = Multifile()
+        self.multifiles.openReadWrite("mf/art.mf")
+
+        if self.vfs.mount(self.multifiles, ".", VirtualFileSystem.MFReadOnly):
+            print('mounted')
 
     def destroy(self):
         # delete actors
@@ -58,7 +61,6 @@ class Level:
             self.timer.annihilate()
             self.timer = None
 
-        for f in self.multifiles:
-            self.level_holder.vfs.unmount(f)
+        self.level_holder.vfs.unmount(self.multifiles)
 
         return

@@ -10,7 +10,7 @@ from communications.datagrams import dg_request_game
 
 class MainMenuLevel(Level):
 
-    multifiles = ["mainmenu.mf"]
+    multifiles = [""]
 
     def __init__(self, father):
         Level.__init__(self, "Main Menu", self.multifiles, father)
@@ -33,7 +33,7 @@ class MainMenuLevel(Level):
 
         LerpPosHprInterval(base.camera, 0.35, Point3(0, 0, 0), Point3(0, 0, 0)).start()
 
-        logo = OnscreenImage(image=loader.loadTexture('mainmenu/logo.png'), pos=(0, 0, 0.625),
+        logo = OnscreenImage(image=loader.loadTexture('art/mainmenu/logo.png'), pos=(0, 0, 0.625),
                              scale=(1, 1, 0.4))
         logo.setTransparency(TransparencyAttrib.MAlpha)
 
@@ -69,7 +69,7 @@ class MainMenuLevel(Level):
 
         LerpPosHprInterval(base.camera, 0.35, Point3(1, 12, 0), Point3(-7, 0, 0)).start()
 
-        settings_image = OnscreenImage(image='mainmenu/mm-settings-ready.png', pos=(0, 0, 0.7),
+        settings_image = OnscreenImage(image='art/mainmenu/buttons/mm-settings-ready.png', pos=(0, 0, 0.7),
                                        scale=(0.5, 1, 0.2))
         settings_image.setTransparency(TransparencyAttrib.MAlpha)
 
@@ -110,7 +110,7 @@ class MainMenuLevel(Level):
         # reset game vars when going to main menu
         self.level_holder.reset_game_vars()
 
-        self.sprites = loader.loadModel("mainmenu/mainmenu.egg")
+        self.sprites = loader.loadModel("art/mainmenu/buttons/buttons")
         # red pawn
         pawn_red = Actor("pawns/pawn.bam")
         pawn_red.setPos(-4, 20, -2)
