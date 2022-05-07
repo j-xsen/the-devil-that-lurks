@@ -112,7 +112,7 @@ class MainMenuLevel(Level):
 
         self.sprites = loader.loadModel("art/mainmenu/buttons/buttons")
         # red pawn
-        pawn_red = Actor("pawns/pawn.bam")
+        pawn_red = Actor("art/pawns/pawn.bam")
         pawn_red.setPos(-4, 20, -2)
         pawn_red.setH(-145)
         pawn_red.loop('breath')
@@ -127,7 +127,7 @@ class MainMenuLevel(Level):
         self.lights["dlight_red_np"].lookAt(self.actors["actor_pawn_red"])
 
         # white pawn
-        pawn_white = Actor("pawns/pawn.bam")
+        pawn_white = Actor("art/pawns/pawn.bam")
         pawn_white.setPos(4, 20, -2)
         pawn_white.setH(145)
         pawn_white.loop('breath')

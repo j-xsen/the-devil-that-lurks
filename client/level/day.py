@@ -13,7 +13,7 @@ from panda3d.core import VirtualFileSystem, Filename
 # Level that all come together during day
 class DayLevel(Level):
 
-    multifiles = [""]
+    multifiles = ""
 
     def __init__(self, level_holder):
         Level.__init__(self, "Day", self.multifiles, level_holder)
@@ -33,9 +33,7 @@ class DayLevel(Level):
         scale_normal = (0.75, 1, 0.25)
         scale_long = (1.25, 1, 0.3)
 
-        VirtualFileSystem.getGlobalPtr().mount(Filename("mf/room-buttons.mf"), ".",
-                                               VirtualFileSystem.MFReadOnly)
-        egg = loader.loadModel("room-buttons/room-buttons.egg")
+        egg = loader.loadModel("art/room_buttons/room_buttons")
 
         # white light
         dlight_white = DirectionalLight('DL White')

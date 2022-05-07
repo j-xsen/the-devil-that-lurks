@@ -5,20 +5,28 @@ from direct.gui.DirectGui import DirectCheckButton
 from objects.timer import Timer
 from communications.datagrams import dg_set_kill
 from panda3d.core import DirectionalLight, PerspectiveLens, Point3, TransparencyAttrib
+from objects.clickable import Clickable
 
 
 class NightLevel(Level):
 
-    multifiles = [""]
+    multifiles = ""
 
-    def __init__(self, father):
-        Level.__init__(self, "Night", self.multifiles, father)
+    def __init__(self, level_holder):
+        Level.__init__(self, "Night", self.multifiles, level_holder)
         self.players_here = 0
 
     def create(self):
         Level.create(self)
 
-        pawn_red = Actor("pawns/pawn.bam")
+        pawn_red = Clickable(self.level_holder, "art/pawns/pawn.bam", "actor_pawn_red")
+        pawn_red.setPos(-4,20,-2)
+        pawn_red.setH(-145)
+        pawn_red.loop('breath')
+        self.clickables["actor_pawn_red"] = pawn_red
+        self.clickables["actor_pawn_red"].reparentTo(render)
+
+        """pawn_red = Actor("pawns/pawn.bam")
         pawn_red.setPos(-4, 20, -2)
         pawn_red.setH(-145)
         pawn_red.loop('breath')
@@ -33,4 +41,4 @@ class NightLevel(Level):
         self.lights["dlight_red_np"].lookAt(self.actors["actor_pawn_red"])
 
         self.actors["actor_pawn_red"].reparentTo(render)
-        self.actors["actor_pawn_red"].setLight(self.lights["dlight_red_np"])
+        self.actors["actor_pawn_red"].setLight(self.lights["dlight_red_np"])"""

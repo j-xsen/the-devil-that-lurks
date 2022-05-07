@@ -20,7 +20,7 @@ from objects.console import Console
 # The Father object holds all UIs and Levels
 class LevelHolder(DirectObject):
 
-    def __init__(self, _cWriter, _cManager, _cReader):
+    def __init__(self, _cWriter, _cManager, _cReader, _CollisionHandler):
         DirectObject.__init__(self)
         # notify
         self.notify = directNotify.newCategory("level_holder")
@@ -28,16 +28,15 @@ class LevelHolder(DirectObject):
         # so we can send messages
         self.messager = Messager(_cWriter, _cManager, _cReader, self)
 
+        # so we can collide things
+        self.collision_handler = _CollisionHandler
+
         # Create stuff we don't want to keep recreating because of their permanence
         self.players = {}
         self.day = 0
         self.killer = False
         self.red_room = 0
         self.vfs = VirtualFileSystem.getGlobalPtr()
-
-        # these are used in nearly every level, just keep it loaded
-        self.vfs.mount(Filename("mf/pawns.mf"), ".", VirtualFileSystem.MFReadOnly)
-        self.vfs.mount(Filename("mf/timer.mf"), ".", VirtualFileSystem.MFReadOnly)
 
         # console
         self.console = None
@@ -52,6 +51,7 @@ class LevelHolder(DirectObject):
         }
 
         # Set active level
+        # TODO make this singular
         self.active_level = MAINMENU
         self.levels[self.active_level].create()
 
@@ -94,6 +94,13 @@ class LevelHolder(DirectObject):
             self.notify.warning(f"[set_active_level] Tried to set level to {level}, but as a string!"
                                 f" Make sure you're using an int!")
             self.set_active_level(int_level)
+
+    def get_active_level(self):
+        """
+        @return: Active Level Object
+        @rtype: Level
+        """
+        return self.levels[self.active_level]
 
     def add_player(self, local_id, name):
         """
@@ -147,8 +154,6 @@ class LevelHolder(DirectObject):
         Use this to close the game.
         Closes connection and tells server we're leaving
         """
-        VirtualFileSystem.getGlobalPtr().unmount("mf/pawns.mf")
-        VirtualFileSystem.getGlobalPtr().unmount("mf/timer.mf")
 
         for level in self.levels:
             self.levels[level].destroy()

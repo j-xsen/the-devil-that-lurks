@@ -6,3 +6,4 @@ notify-level-msgr debug
 notify-level-console debug
 notify-level-alert debug
 notify-level-level debug
+notify-level-clickable debug

@@ -1,5 +1,5 @@
 from direct.showbase.ShowBase import ShowBase
-from panda3d.core import AntialiasAttrib, loadPrcFileData, loadPrcFile
+from panda3d.core import AntialiasAttrib, loadPrcFileData, loadPrcFile, CollisionHandlerEvent, CollisionHandlerQueue
 from direct.task.TaskManagerGlobal import taskMgr
 from direct.directnotify.DirectNotifyGlobal import directNotify
 
@@ -36,20 +36,41 @@ class Client(ShowBase):
         render.setAntialias(AntialiasAttrib.MAuto)
         self.disableMouse()
 
-        # create father
-        self.father = LevelHolder(self.cWriter, self.cManager, self.cReader)
+        # create collision handler
+        self.handler = CollisionHandlerQueue()
 
-        self.messager = self.father.messager
+        # create level holder
+        self.level_holder = LevelHolder(self.cWriter, self.cManager, self.cReader, self.handler)
+
+        # create messager
+        self.messager = self.level_holder.messager
 
         # inputs
-        self.accept('escape', self.debug)
+        self.accept('escape', self.escape)
+        self.accept('mouse1', self.mouse_one)
 
         # try to connect
         self.connect()
 
-    def debug(self):
+    def escape(self):
+        """
+        Escape is pressed
+        """
         # testing_alert = Alert(-1)
-        self.father.set_active_level(NIGHT)
+        self.level_holder.exit_game()
+
+    def mouse_one(self):
+        """
+        Mouse One is pressed
+        """
+        # First we check that the mouse is not outside the screen.
+        if base.mouseWatcherNode.hasMouse():
+            # This gives up the screen coordinates of the mouse.
+            mpos = base.mouseWatcherNode.getMouse()
+
+            # check if any clickables
+            for c in self.level_holder.get_active_level().clickables:
+                self.level_holder.get_active_level().clickables[c].beam(mpos, True)
 
     def connect(self):
         port_address = SERVER_PORT
@@ -61,7 +82,7 @@ class Client(ShowBase):
                                                               timeout)
         if my_connection:
             self.notify.info("Connected")
-            self.father.set_connection(my_connection)
+            self.level_holder.set_connection(my_connection)
             self.cReader.addConnection(my_connection)
 
             # tasks
@@ -69,7 +90,7 @@ class Client(ShowBase):
             taskMgr.doMethodLater(HEARTBEAT_PLAYER, self.messager.heartbeat, "Send heartbeat")
         else:
             Alert(-2)
-            self.father.failed_to_connect()
+            self.level_holder.failed_to_connect()
             self.notify.warning("Could not connect!")
 
 

@@ -19,19 +19,26 @@ class Level:
         self.images = {}
         self.text_nodepaths = {}
         self.text = {}
+        self.clickables = {}
         self.timer = None
 
     def __repr__(self):
         return f"Level({self.name})"
+
+    def create_clickable(self, name, clickable):
+        self.clickables[name] = clickable
+        self.accept(f"mouse_ray-in-{name}", clickable.collision)
+        self.accept(f"{name}-in-mouse_ray", clickable.collision)
 
     def create(self):
         self.multifiles = Multifile()
         self.multifiles.openReadWrite("mf/art.mf")
 
         if self.vfs.mount(self.multifiles, ".", VirtualFileSystem.MFReadOnly):
-            self.notify.debug("[create] mounted mf/art.mf!")
+            self.notify.info("[create] mounted mf/art.mf!")
 
     def destroy(self):
+        self.notify.debug(f"[destroy] destroying {self.name}")
         # delete actors
         # delete models
         # delete uis
@@ -39,6 +46,10 @@ class Level:
         for a in self.actors:
             self.actors[a].cleanup()
         self.actors = {}
+
+        for c in self.clickables:
+            self.clickables[c].cleanup()
+        self.clickables = {}
 
         for l in self.lights:
             self.lights[l].removeNode()
@@ -64,7 +75,11 @@ class Level:
             self.timer.annihilate()
             self.timer = None
 
-        self.level_holder.vfs.unmount(self.multifiles)
-        self.notify.debug("[destroy] unmounted mf/art.mf!")
+        if type(self.multifiles) == list:
+            for f in self.multifiles:
+                self.level_holder.vfs.unmount(f)
+                self.notify.warning(f"[destroy] (for) unmounted mf/{self.name}.mf")
+        else:
+            self.level_holder.vfs.unmount(self.multifiles)
 
         return
