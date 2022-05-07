@@ -53,7 +53,7 @@ class DayLevel(Level):
 
         for p in self.level_holder.players:
             # pawns
-            pawn_red = Actor("pawns/pawn.bam")
+            pawn_red = Actor("art/pawns/pawn.bam")
 
             pos = self.positions[list(self.level_holder.players).index(p)]
 
