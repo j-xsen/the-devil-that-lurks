@@ -4,7 +4,7 @@ Hello! First of all, thank you for checking out my game! Before downloading, ple
 
 # How to Play
 ## Requirements
-- [Python 3.8](https://www.python.org/downloads/ "Python 3.8")
+- [Python 3.8](https://www.python.org/downloads/ "Python 3.10")
 - [Panda3D](https://www.panda3d.org/download/ "Panda3d")
 
 ## Running the Game
