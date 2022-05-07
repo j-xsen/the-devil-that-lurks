@@ -53,20 +53,22 @@ class Clickable(Actor, Notifier):
                 # This gives up the screen coordinates of the mouse.
                 mpos = base.mouseWatcherNode.getMouse()
                 if self.beam(mpos, False):
-                    self.set_clickable_state(1)
+                    self.state = 1
                 else:
-                    self.set_clickable_state(0)
+                    self.state = 0
+        self.set_clickable_state()
         return Task.again
 
-    def set_clickable_state(self, state):
-        if state == 0:
-            self.setScale(1)
-        elif state == 1:
-            self.setScale(1.15)
-        elif state == 2:
-            self.setScale(1.15)
-        elif state == 3:
-            self.setScale(1.25)
+    def set_clickable_state(self):
+        match self.state:
+            case 0:
+                self.setScale(1)
+            case 1:
+                self.setScale(1.15)
+            case 2:
+                self.setScale(1.15)
+            case 3:
+                self.setScale(1.25)
 
     def beam(self, mpos, click):
         """
@@ -85,10 +87,12 @@ class Clickable(Actor, Notifier):
             picked_object = picked_object.findNetTag('clickable')
             if not picked_object.isEmpty():
                 if click:
-                    self.collision(picked_object)
+                    self.clicked(picked_object)
                 return True
         return False
 
-    def collision(self, entry):
-        self.setScale(1.25)
-        print("collision")
+    def clicked(self, entry):
+        if self.state == 3:
+            self.state = 1
+        else:
+            self.state = 3
